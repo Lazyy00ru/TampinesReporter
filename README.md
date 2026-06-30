@@ -266,7 +266,7 @@ Additional agencies can be added to `AGENCY_PASSWORDS` in `main.py`.
 
 ---
 
-### 💡 Key Takeaways
+### Key Takeaways
 
 | Area | What We Demonstrated |
 |---|---|
