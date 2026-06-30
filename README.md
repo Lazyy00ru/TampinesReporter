@@ -226,7 +226,7 @@ Additional agencies can be added to `AGENCY_PASSWORDS` in `main.py`.
 
 ---
 
-## 🏆 Hackathon Showcase — Tampines Hackathon
+## Hackathon Showcase — Tampines Hackathon
 
 > Tampines Estate Reporter was built and presented at the **Tampines Hackathon**, where teams were challenged to develop technology-driven solutions that improve estate living and municipal service delivery for residents. Our team designed, built, and deployed the full-stack AI pipeline — from resident-facing voice reporting to automated agency dispatch — within the hackathon window, and presented the live system to a judging panel that included government officials and industry experts.
 
