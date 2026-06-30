@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>AI Assistant · Tampines Estate Reporter</title>
+<meta name="description" content="Multilingual agency AI assistant — EN / 中文 / தமிழ் / မြန်မာ / Melayu">
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --white:       #ffffff;
+  --off:         #f7fbfd;
+  --surface:     #f5f7fa;
+
+  --border:      #d9eef3;
+  --border2:     #b8edf3;
+
+  --text:        #0b1a33;
+  --muted:       #5c6b80;
+  --muted2:      #8fa2b7;
+
+  --red:         #ef4444;
+  --orange:      #f59e0b;
+  --green:       #10b981;
+  --amber:       #d97706;
+
+  --blue:        #00b7eb;
+  --navy:        #0f172a;
+
+  --ai-bg:       #f0fbff;
+  --ai-border:   #b8edf3;
+  --ai-text:     #0b1a33;
+}
+
+body {
+  background: var(--white);
+  font-family: 'DM Sans', sans-serif;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  color: var(--text);
+  overflow: hidden;
+}
+
+/* ── HEADER ─────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #b8edf3;
+  background: #ffffff;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+.hdr-back {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--surface); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0; font-size: 16px;
+  transition: background 0.15s;
+}
+.hdr-back:hover { background: var(--border); }
+.hdr-info { flex: 1; min-width: 0; }
+.hdr-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 17px; font-weight: 400;
+  color: var(--text); line-height: 1.2;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.hdr-title span { color: var(--blue); }
+.hdr-sub { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 1px; }
+.hdr-status {
+  display: flex; align-items: center; gap: 6px;
+  background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 20px;
+  padding: 5px 10px; flex-shrink: 0;
+}
+.status-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--green);
+  animation: blink 2s infinite;
+}
+@keyframes blink { 0%,100%{opacity:.5;transform:scale(.85)} 50%{opacity:1;transform:scale(1.1)} }
+.hdr-status span { font-size: 11px; font-weight: 700; color: var(--green); }
+
+/* ── QUICK PROMPTS ───────────────────────────── */
+.quick-bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: 1px solid #d9eef3;
+  background: #f7fbfd;
+  flex-shrink: 0;
+}
+.quick-bar::-webkit-scrollbar { display: none; }
+.quick-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted2); white-space: nowrap; flex-shrink: 0; }
+.qp-chip {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 20px; padding: 5px 12px;
+  font-size: 11px; font-weight: 600; color: var(--text);
+  white-space: nowrap; flex-shrink: 0; cursor: pointer;
+  transition: all 0.15s;
+}
+.qp-chip:hover {
+  background: #00b7eb;
+  border-color: #00b7eb;
+  color: #fff;
+}
+.qp-chip .ic { font-size: 13px; }
+
+/* ── MESSAGES AREA ───────────────────────────── */
+.chat-scroll {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  padding: 16px 14px 10px;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.msg-group { margin-bottom: 16px; display: flex; flex-direction: column; }
+.msg-group.user { align-items: flex-end; }
+.msg-group.ai   { align-items: flex-start; }
+
+/* AI Avatar */
+.ai-avatar-row { display: flex; align-items: flex-end; gap: 8px; width: 100%; }
+.ai-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--navy);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; flex-shrink: 0; margin-bottom: 2px;
+  box-shadow: 0 2px 8px rgba(30,42,71,0.3);
+}
+.ai-bubble-wrap { flex: 1; min-width: 0; }
+
+/* Bubbles */
+.bubble {
+  display: inline-block;
+  padding: 11px 14px; border-radius: 16px;
+  font-size: 13.5px; line-height: 1.55;
+  max-width: 100%;
+  word-break: break-word;
+}
+.bubble.user {
+  background: linear-gradient(135deg, #00b7eb, #0095c8);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+  max-width: 80%;
+}
+.bubble.ai {
+  background: #f8fdff;
+  color: #0b1a33;
+  border: 1.5px solid #b8edf3;
+  border-bottom-left-radius: 4px;
+  width: 100%;
+}
+.bubble.ai p { margin-bottom: 8px; }
+.bubble.ai p:last-child { margin-bottom: 0; }
+.bubble.ai strong { font-weight: 700; color: var(--navy); }
+.bubble.ai ul { padding-left: 18px; margin: 6px 0; }
+.bubble.ai li { margin-bottom: 4px; }
+
+.msg-time {
+  font-size: 9px; font-weight: 600; color: var(--muted2);
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+}
+.msg-group.user .msg-time { text-align: right; margin-right: 2px; }
+.msg-group.ai  .msg-time  { text-align: left; margin-left: 36px; }
+
+/* Typing indicator */
+.typing-dots {
+  display: flex; gap: 4px; align-items: center;
+  padding: 12px 14px;
+  background: var(--ai-bg); border: 1px solid var(--ai-border);
+  border-radius: 16px; border-bottom-left-radius: 4px;
+  width: fit-content;
+}
+.typing-dots span {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--navy); opacity: 0.4;
+  animation: tdot 1.2s infinite;
+}
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes tdot { 0%,80%,100%{opacity:.2;transform:scale(.7)} 40%{opacity:1;transform:scale(1)} }
+
+/* Chart cards inside bubble */
+.chart-embed {
+  background: #ffffff;
+  border: 1.5px solid #b8edf3;
+  border-radius: 10px;
+  padding: 14px;
+  margin-top: 12px;
+  overflow: hidden;
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.03),
+    0 8px 24px rgba(0,183,235,0.08);
+}
+.chart-embed-title {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.8px; color: var(--muted); margin-bottom: 12px;
+}
+.mini-stat-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.mini-stat {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 12px; flex: 1; min-width: 70px;
+}
+.mini-stat .val { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--text); line-height: 1; }
+.mini-stat .val.r { color: var(--red); }
+.mini-stat .val.g { color: var(--green); }
+.mini-stat .val.o { color: var(--orange); }
+.mini-stat .lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-top: 4px; }
+
+/* Agency table */
+.agency-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 12px; }
+.agency-table th { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border); }
+.agency-table td { padding: 8px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.agency-table tr:last-child td { border-bottom: none; }
+.agency-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: var(--text); }
+.sla-pill {
+  display: inline-block; border-radius: 20px; padding: 2px 8px;
+  font-size: 10px; font-weight: 700; white-space: nowrap;
+}
+.sla-pill.fast { background: #dcfce7; color: #15803d; }
+.sla-pill.med  { background: #fef3c7; color: #b45309; }
+.sla-pill.slow { background: #fee2e2; color: #b91c1c; }
+
+/* Sources tag */
+.source-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: #eff6ff; border: 1px solid #bfdbfe;
+  border-radius: 6px; padding: 3px 8px;
+  font-size: 10px; font-weight: 600; color: #1d4ed8;
+  margin-top: 8px; cursor: default;
+}
+
+/* ── WELCOME CARD ────────────────────────────── */
+.welcome-card {
+  background: linear-gradient(135deg, #00b7eb 0%, #0095c8 100%);
+  border-radius: 16px;
+  padding: 20px 18px;
+  margin-bottom: 16px;
+  color: #fff;
+}
+.wc-eyebrow { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.6; margin-bottom: 8px; }
+.wc-title { font-family: 'DM Serif Display', serif; font-size: 20px; line-height: 1.25; margin-bottom: 10px; }
+.wc-body { font-size: 12px; opacity: 0.75; line-height: 1.6; }
+.wc-caps { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+.wc-cap {
+  background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 6px; padding: 4px 10px;
+  font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.9);
+}
+
+/* ── INPUT BAR ───────────────────────────────── */
+.input-area {
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  border-top: 1px solid #d9eef3;
+  background: #ffffff;
+  flex-shrink: 0;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+}
+.input-row { display: flex; gap: 8px; align-items: flex-end; }
+.input-box {
+  flex: 1; display: flex; align-items: flex-end;
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 20px; padding: 6px 14px; gap: 8px;
+  transition: border-color 0.15s;
+}
+.input-box:focus-within {
+  border-color: #00b7eb;
+  box-shadow: 0 0 0 3px rgba(0,183,235,0.12);
+}
+textarea {
+  flex: 1; background: none; border: none; outline: none; resize: none;
+  font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text);
+  line-height: 1.45; max-height: 120px; overflow-y: auto;
+  padding: 4px 0;
+  scrollbar-width: none;
+}
+textarea::-webkit-scrollbar { display: none; }
+textarea::placeholder { color: var(--muted2); }
+.send-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00b7eb, #0095c8);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.send-btn:hover {
+  background: linear-gradient(135deg, #00c8ff, #00a6db);
+  transform: scale(1.05);
+}
+.send-btn:disabled { background: var(--border); cursor: not-allowed; transform: none; }
+.send-btn svg { width: 16px; height: 16px; fill: #fff; }
+
+.input-hint { font-size: 10px; font-weight: 600; color: var(--muted2); text-align: center; margin-top: 6px; letter-spacing: 0.3px; }
+
+/* ── CONTEXT DATA STRIP ──────────────────────── */
+.data-strip {
+  display: flex;
+  gap: 6px;
+  padding: 8px 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: #f7fbfd;
+  border-bottom: 1px solid #d9eef3;
+  flex-shrink: 0;
+}
+.data-strip::-webkit-scrollbar { display: none; }
+.ds-chip {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 8px; padding: 5px 10px;
+  font-size: 10px; font-weight: 700; color: var(--text);
+  white-space: nowrap; flex-shrink: 0;
+}
+.ds-chip .dot { width: 6px; height: 6px; border-radius: 50%; }
+
+/* ── API KEY SETUP OVERLAY ──────────────────── */
+.apikey-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 999; padding: 20px; backdrop-filter: blur(4px);
+}
+.apikey-card {
+  background: var(--white); border-radius: 20px;
+  padding: 28px 24px; max-width: 380px; width: 100%;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+}
+.apikey-card h2 { font-family:'DM Serif Display',serif; font-size:22px; color:var(--text); margin-bottom:6px; }
+.apikey-card p  { font-size:12px; color:var(--muted); line-height:1.6; margin-bottom:18px; }
+.apikey-input {
+  width:100%; padding:10px 14px; border-radius:10px;
+  border:1.5px solid var(--border); font-family:'DM Sans',sans-serif;
+  font-size:13px; color:var(--text); background:var(--surface);
+  outline:none; margin-bottom:12px; transition:border-color .15s;
+}
+.apikey-input:focus { border-color:var(--navy); }
+.apikey-btn {
+  width:100%; padding:11px; border-radius:10px;
+  background:var(--navy); color:#fff; border:none;
+  font-family:'DM Sans',sans-serif; font-size:14px; font-weight:700;
+  cursor:pointer; transition:background .15s;
+}
+.apikey-btn:hover { background:var(--blue); }
+.apikey-langs { display:flex; gap:6px; flex-wrap:wrap; margin-top:16px; }
+.apikey-lang-pill {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:20px; padding:3px 10px;
+  font-size:11px; font-weight:600; color:var(--muted);
+}
+/* ── LANGUAGE INDICATOR ─────────────────────── */
+.lang-indicator {
+  display:inline-flex; align-items:center; gap:4px;
+  background:#eff6ff; border:1px solid #bfdbfe;
+  border-radius:6px; padding:2px 8px;
+  font-size:10px; font-weight:700; color:#1d4ed8;
+  margin-top:6px;
+}
+
+/* ── MOBILE: ensure input is always visible ─── */
+body {
+  overflow: hidden;
+}
+/* On very small screens, shrink quick-bar so input gets room */
+@media (max-height: 600px) {
+  .quick-bar { display: none; }
+  .data-strip { display: none; }
+}
+
+@media (min-width: 700px) {
+  .chat-scroll { padding: 24px 24px 16px; }
+  .bubble { font-size: 14px; }
+  .bubble.user { max-width: 60%; }
+  .input-area { padding: 14px 24px; }
+  .quick-bar { padding: 10px 24px; }
+}
+
+/* FINAL COLOR OVERRIDE */
+.header {
+  border-bottom: 1px solid #b8edf3 !important;
+  background: #ffffff !important;
+}
+</style>
+</head>
+<body>
+
+<!-- No browser API key needed — Claude is proxied via Flask /api/claude-chat -->
+
+<!-- HEADER -->
+<div class="header">
+  <div class="hdr-back" onclick="history.back()">←</div>
+  <div class="hdr-info">
+    <div class="hdr-title">🤖 <span>AI</span> Intelligence</div>
+    <div class="hdr-sub">Tampines Estate · 多语言 · Multilingual AI</div>
+  </div>
+  <div class="hdr-status">
+    <div class="status-dot"></div>
+    <span>Online</span>
+  </div>
+</div>
+
+<!-- DATA CONTEXT STRIP -->
+<div class="data-strip" id="dataStrip">
+  <div class="ds-chip"><span class="dot" style="background:#dc2626"></span><span id="ds-critical">—</span> Critical</div>
+  <div class="ds-chip"><span class="dot" style="background:#ea580c"></span><span id="ds-open">—</span> Open</div>
+  <div class="ds-chip"><span class="dot" style="background:#16a34a"></span><span id="ds-resolved">—</span> Resolved</div>
+  <div class="ds-chip"><span class="dot" style="background:#2563eb"></span><span id="ds-total">—</span> Total</div>
+</div>
+
+<!-- QUICK PROMPTS -->
+<div class="quick-bar">
+  <span class="quick-label">Ask</span>
+  <div class="qp-chip" onclick="quickSend('Which department should handle a flooding issue?')"><span class="ic">💧</span> Flooding dept</div>
+  <div class="qp-chip" onclick="quickSend('Show me agency response times as a chart')"><span class="ic">📊</span> Agency chart</div>
+  <div class="qp-chip" onclick="quickSend('How long does it take to resolve a broken lift?')"><span class="ic">⏱️</span> Lift SLA</div>
+  <div class="qp-chip" onclick="quickSend('Summarise all open critical cases')"><span class="ic">🚨</span> Critical cases</div>
+  <div class="qp-chip" onclick="quickSend('What is the busiest category of issues this week?')"><span class="ic">📈</span> Top category</div>
+  <div class="qp-chip" onclick="quickSend('Show priority breakdown chart')"><span class="ic">🗂️</span> Priority chart</div>
+</div>
+
+<!-- CHAT AREA -->
+<div class="chat-scroll" id="chatScroll">
+
+  <!-- Welcome card (shown once, hidden after first message) -->
+  <div id="welcomeCard" class="welcome-card">
+    <div class="wc-eyebrow">Multilingual Agency AI Assistant</div>
+    <div class="wc-title">Ask anything — in any Singapore language</div>
+    <div class="wc-body">I detect your language automatically and reply in kind. Ask in English, 中文, தமிழ், မြန်မာ, or Melayu. I have live access to your case database for agency routing, SLAs, and charts.</div>
+    <div class="wc-caps">
+      <span class="wc-cap">🌐 Auto language detect</span>
+      <span class="wc-cap">🏢 Agency routing</span>
+      <span class="wc-cap">⏱️ SLA lookup</span>
+      <span class="wc-cap">📊 Live charts</span>
+    </div>
+  </div>
+
+  <div id="messageList"></div>
+</div>
+
+<!-- INPUT -->
+<div class="input-area">
+  <div class="input-row">
+    <div class="input-box">
+      <textarea id="chatInput" placeholder="Ask in English, 中文, தமிழ், မြန်မာ, Melayu…" rows="1"
+        onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+    </div>
+    <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+      <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+    </button>
+  </div>
+  <div class="input-hint">🌐 EN · 中文 · தமிழ் · မြန်မာ · Melayu · Powered by Claude</div>
+</div>
+
+<script>
+// ── DATA LAYER ────────────────────────────────────────────────────────────────
+const AGENCY_ROUTING = {
+  plastic_litter:{agency:"NEA",sla:"24 hours",category:"cleanliness"},
+  food_waste:{agency:"NEA",sla:"24 hours",category:"cleanliness"},
+  cigarette_butt:{agency:"NEA",sla:"24 hours",category:"cleanliness"},
+  bulky_item:{agency:"NEA",sla:"48 hours",category:"cleanliness"},
+  overflowing_bin:{agency:"NEA",sla:"4 hours",category:"cleanliness"},
+  illegal_dump:{agency:"NEA",sla:"24 hours",category:"cleanliness"},
+  broken_pipe:{agency:"Town Council",sla:"4 hours",category:"structural"},
+  broken_wire:{agency:"Town Council",sla:"4 hours",category:"structural"},
+  road_crack:{agency:"Town Council",sla:"3 working days",category:"structural"},
+  footpath_crack:{agency:"Town Council",sla:"3 working days",category:"structural"},
+  broken_drain:{agency:"Town Council",sla:"24 hours",category:"structural"},
+  broken_playground:{agency:"Town Council",sla:"24 hours",category:"structural"},
+  lift_fault:{agency:"Town Council",sla:"4 hours",category:"structural"},
+  broken_railing:{agency:"Town Council",sla:"24 hours",category:"structural"},
+  streetlight_fault:{agency:"Town Council",sla:"24 hours",category:"electrical"},
+  carpark_light:{agency:"Town Council",sla:"24 hours",category:"electrical"},
+  flooding:{agency:"PUB",sla:"IMMEDIATE",category:"water"},
+  choked_drain:{agency:"PUB",sla:"4 hours",category:"water"},
+  manhole_overflow:{agency:"PUB",sla:"4 hours",category:"water"},
+  ceiling_leak:{agency:"PUB",sla:"24 hours",category:"water"},
+  stagnant_water:{agency:"PUB",sla:"24 hours",category:"water"},
+  blocked_exit:{agency:"SCDF",sla:"IMMEDIATE",category:"safety"},
+  fire_hazard:{agency:"SCDF",sla:"IMMEDIATE",category:"safety"},
+  fallen_tree:{agency:"NParks",sla:"4 hours",category:"safety"},
+  graffiti:{agency:"Police",sla:"3 working days",category:"safety"},
+  renovation_noise:{agency:"Police",sla:"2 working days",category:"noise"},
+  neighbour_noise:{agency:"Police",sla:"2 working days",category:"noise"},
+  smoking_prohibited:{agency:"NEA",sla:"24 hours",category:"noise"},
+  rat:{agency:"NEA",sla:"2 working days",category:"pest"},
+  pigeon:{agency:"NEA",sla:"2 working days",category:"pest"},
+  mosquito_breeding:{agency:"NEA",sla:"24 hours",category:"pest"},
+  bee_nest:{agency:"NEA",sla:"4 hours",category:"pest"},
+  illegal_parking:{agency:"LTA",sla:"24 hours",category:"vehicles"},
+  abandoned_vehicle:{agency:"LTA",sla:"3 working days",category:"vehicles"},
+  pmd:{agency:"LTA",sla:"24 hours",category:"vehicles"},
+  overgrown_grass:{agency:"NParks",sla:"3 working days",category:"greenery"},
+  fallen_uprooted_tree:{agency:"NParks",sla:"4 hours",category:"greenery"},
+  dead_tree:{agency:"NParks",sla:"3 working days",category:"greenery"},
+};
+
+const AGENCY_META = {
+  NEA:          {icon:"🌿",full:"National Environment Agency",color:"#10b981"},
+  "Town Council":{icon:"🏘️",full:"Tampines Town Council",color:"#3b82f6"},
+  PUB:          {icon:"💧",full:"PUB (Water Agency)",color:"#06b6d4"},
+  SCDF:         {icon:"🚒",full:"Singapore Civil Defence Force",color:"#ef4444"},
+  LTA:          {icon:"🚗",full:"Land Transport Authority",color:"#f59e0b"},
+  NParks:       {icon:"🌳",full:"National Parks Board",color:"#22c55e"},
+  Police:       {icon:"🚔",full:"Singapore Police Force",color:"#8b5cf6"},
+};
+
+// ── CASE DATA ─────────────────────────────────────────────────────────────────
+let LIVE_CASES = [];
+let CONTEXT_SUMMARY = "";
+
+async function loadLiveCases() {
+  try {
+    const r = await fetch('/analytics?days=365');
+    if (r.ok) {
+      const d = await r.json();
+      // Store analytics summary
+      CONTEXT_SUMMARY = JSON.stringify(d);
+      document.getElementById('ds-total').textContent    = d.total    || 0;
+      document.getElementById('ds-critical').textContent = d.critical || 0;
+      document.getElementById('ds-open').textContent     = d.open     || 0;
+      document.getElementById('ds-resolved').textContent = d.resolved || 0;
+      return d;
+    }
+  } catch(e) {}
+  // Demo fallback
+  const demo = {total:87,critical:3,open:24,resolved:63,
+    agency:{NEA:28,"Town Council":22,PUB:12,SCDF:4,LTA:11,NParks:6,Police:4},
+    priority:{CRITICAL:3,HIGH:14,MEDIUM:38,LOW:32}};
+  CONTEXT_SUMMARY = JSON.stringify(demo);
+  document.getElementById('ds-total').textContent    = demo.total;
+  document.getElementById('ds-critical').textContent = demo.critical;
+  document.getElementById('ds-open').textContent     = demo.open;
+  document.getElementById('ds-resolved').textContent = demo.resolved;
+  return demo;
+}
+
+// ── CHARTS ────────────────────────────────────────────────────────────────────
+let chartCount = 0;
+
+function renderAgencyBarChart(data) {
+  const id = 'chart_' + (++chartCount);
+  const html = `
+    <div class="chart-embed">
+      <div class="chart-embed-title">Agency Case Distribution</div>
+      <canvas id="${id}" height="200"></canvas>
+    </div>`;
+  setTimeout(() => {
+    const agencies = Object.entries(data.agency || {}).sort((a,b)=>b[1]-a[1]);
+    new Chart(document.getElementById(id), {
+      type: 'bar',
+      data: {
+        labels: agencies.map(([k]) => k),
+        datasets: [{
+          data: agencies.map(([,v]) => v),
+          backgroundColor: agencies.map(([k]) => (AGENCY_META[k]?.color || '#94a3b8') + 'cc'),
+          borderColor:     agencies.map(([k]) => AGENCY_META[k]?.color || '#94a3b8'),
+          borderWidth: 1.5, borderRadius: 5, borderSkipped: false,
+        }]
+      },
+      options: {
+        animation: false, plugins: { legend: { display: false } },
+        scales: {
+          x: { grid:{display:false}, ticks:{font:{family:'DM Sans',size:10},color:'#79776e'} },
+          y: { grid:{color:'#e8e6e1'}, ticks:{font:{family:'DM Sans',size:10},color:'#79776e'}, beginAtZero:true }
+        }
+      }
+    });
+  }, 50);
+  return html;
+}
+
+function renderPriorityDonut(data) {
+  const id = 'chart_' + (++chartCount);
+  const prios = data.priority || {};
+  const html = `
+    <div class="chart-embed">
+      <div class="chart-embed-title">Priority Breakdown</div>
+      <canvas id="${id}" height="180"></canvas>
+      <div class="mini-stat-row">
+        <div class="mini-stat"><div class="val r">${prios.CRITICAL||0}</div><div class="lbl">Critical</div></div>
+        <div class="mini-stat"><div class="val o">${prios.HIGH||0}</div><div class="lbl">High</div></div>
+        <div class="mini-stat"><div class="val" style="color:#2563eb">${prios.MEDIUM||0}</div><div class="lbl">Medium</div></div>
+        <div class="mini-stat"><div class="val">${prios.LOW||0}</div><div class="lbl">Low</div></div>
+      </div>
+    </div>`;
+  setTimeout(() => {
+    new Chart(document.getElementById(id), {
+      type: 'doughnut',
+      data: {
+        labels: ['Critical','High','Medium','Low'],
+        datasets: [{
+          data: [prios.CRITICAL||0, prios.HIGH||0, prios.MEDIUM||0, prios.LOW||0],
+          backgroundColor: ['#ef4444cc','#f59e0bcc','#3b82f6cc','#9ca3afcc'],
+          borderColor:     ['#ef4444',  '#f59e0b',  '#3b82f6',  '#9ca3af'],
+          borderWidth: 2, hoverOffset: 4,
+        }]
+      },
+      options: {
+        cutout:'62%', animation:false,
+        plugins:{ legend:{position:'bottom',labels:{font:{family:'DM Sans',size:10},color:'#111110',padding:12}} }
+      }
+    });
+  }, 50);
+  return html;
+}
+
+function renderSLATable() {
+  // Group by agency and pick representative SLAs
+  const byAgency = {};
+  for (const [key, val] of Object.entries(AGENCY_ROUTING)) {
+    if (!byAgency[val.agency]) byAgency[val.agency] = [];
+    byAgency[val.agency].push({ type: key.replace(/_/g,' '), sla: val.sla });
+  }
+  const rows = Object.entries(byAgency).map(([agency, items]) => {
+    const meta = AGENCY_META[agency] || {};
+    const fastestSLA = items.find(i => i.sla === 'IMMEDIATE') ? 'IMMEDIATE'
+      : items.find(i => i.sla.includes('hours') && parseInt(i.sla) <= 4) ? '≤ 4 hrs'
+      : items.find(i => i.sla.includes('hours')) ? '24 hrs'
+      : '2–5 days';
+    const pillClass = fastestSLA === 'IMMEDIATE' || fastestSLA === '≤ 4 hrs' ? 'fast'
+      : fastestSLA === '24 hrs' ? 'med' : 'slow';
+    return `<tr>
+      <td><span class="agency-badge">${meta.icon||'🏢'} ${agency}</span></td>
+      <td>${items.length} types</td>
+      <td><span class="sla-pill ${pillClass}">${fastestSLA}</span></td>
+    </tr>`;
+  });
+  return `
+    <div class="chart-embed">
+      <div class="chart-embed-title">Agency SLA Reference</div>
+      <table class="agency-table">
+        <thead><tr><th>Agency</th><th>Issue Types</th><th>Fastest SLA</th></tr></thead>
+        <tbody>${rows.join('')}</tbody>
+      </table>
+    </div>`;
+}
+
+// ── SYSTEM PROMPT ─────────────────────────────────────────────────────────────
+function buildSystemPrompt() {
+  const routingJson = JSON.stringify(AGENCY_ROUTING);
+  return `You are an AI assistant for the Tampines Estate Reporter agency portal in Singapore. You help agency staff quickly understand:
+1. Which agency/department handles which type of issue
+2. Expected response times (SLAs)
+3. Analysis of the live case database
+
+CRITICAL — LANGUAGE RULE:
+Detect the language of the user's message and ALWAYS reply in THAT SAME LANGUAGE.
+- If the user writes in Chinese (Simplified or Traditional), reply entirely in Chinese.
+- If the user writes in Tamil, reply entirely in Tamil.
+- If the user writes in Malay/Bahasa Melayu, reply entirely in Malay.
+- If the user writes in Burmese/Myanmar, reply entirely in Burmese.
+- If the user writes in English or any other language, reply in that language.
+- Do NOT switch languages mid-reply. Match the user's language exactly.
+- Agency names and abbreviations (NEA, PUB, SCDF, LTA, NParks, Town Council, Police) may stay in English as they are proper nouns.
+
+AGENCY ROUTING DATA (JSON):
+${routingJson}
+
+LIVE DATABASE SUMMARY:
+${CONTEXT_SUMMARY}
+
+AGENCY FULL NAMES:
+- NEA = National Environment Agency (handles cleanliness, pest, waste, smoking)
+- Town Council = Tampines Town Council (handles structural, electrical, maintenance)
+- PUB = Public Utilities Board / Water Agency (handles flooding, drainage, leaks)
+- SCDF = Singapore Civil Defence Force (handles fire hazards, blocked exits — IMMEDIATE response)
+- LTA = Land Transport Authority (handles vehicles, parking, roads)
+- NParks = National Parks Board (handles trees, greenery, overgrowth)
+- Police = Singapore Police Force (handles noise complaints, graffiti, vandalism)
+
+RESPONSE STYLE:
+- Be concise and direct — agency staff are busy
+- Use bullet points for lists of issues or agencies
+- When asked about response times, always mention the SLA
+- When asked to show a chart, include EXACTLY this marker: [CHART:agency] for agency chart, [CHART:priority] for priority chart, [CHART:sla] for SLA table
+- Bold agency names using **Agency Name** syntax
+- Always confirm which agency handles what clearly`;
+}
+
+// ── CONVERSATION HISTORY ──────────────────────────────────────────────────────
+// Anthropic uses [{role:'user'|'assistant', content:'...'}]
+let conversation = [];
+
+// ── LANGUAGE DETECTION (simple heuristic for display badge) ──────────────────
+function detectLangLabel(text) {
+  if (/[\u4e00-\u9fff]/.test(text)) return '🇨🇳 中文';
+  if (/[\u0B80-\u0BFF]/.test(text)) return '🇮🇳 தமிழ்';
+  if (/[\u1000-\u109F]/.test(text)) return '🇲🇲 မြန်မာ';
+  if (/\b(anda|saya|tidak|dengan|untuk|dalam|yang|apa|boleh|tolong|terima)\b/i.test(text)) return '🇲🇾 Melayu';
+  return null;
+}
+
+// ── SEND MESSAGE ──────────────────────────────────────────────────────────────
+let isLoading = false;
+
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text || isLoading) return;
+
+  // Hide welcome card
+  const wc = document.getElementById('welcomeCard');
+  if (wc) { wc.style.display = 'none'; }
+
+  input.value = '';
+  autoResize(input);
+  setLoading(true);
+
+  appendUserMsg(text);
+  const typingId = appendTyping();
+
+  const langLabel = detectLangLabel(text);
+  conversation.push({ role: 'user', content: text });
+
+  try {
+    // Call Flask proxy — no API key needed in the browser
+    const res = await fetch('/api/claude-chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system:   buildSystemPrompt(),
+        messages: conversation.slice(-20)
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      removeTyping(typingId);
+      appendAIMsg(`⚠️ Claude error: ${data.error || 'Unknown error'}`);
+      setLoading(false);
+      return;
+    }
+
+    const reply = data.content || 'Sorry, I could not generate a response.';
+    conversation.push({ role: 'assistant', content: reply });
+    removeTyping(typingId);
+    appendAIMsg(reply, langLabel);
+
+  } catch(e) {
+    removeTyping(typingId);
+    appendAIMsg('⚠️ Could not reach AI service. Check your connection and try again.');
+  }
+
+  setLoading(false);
+}
+
+// ── MESSAGE RENDERING ─────────────────────────────────────────────────────────
+function appendUserMsg(text) {
+  const list = document.getElementById('messageList');
+  const div = document.createElement('div');
+  div.className = 'msg-group user';
+  div.innerHTML = `
+    <div class="bubble user">${escHtml(text)}</div>
+    <div class="msg-time">${nowStr()}</div>`;
+  list.appendChild(div);
+  scrollBottom();
+}
+
+function appendAIMsg(rawText, langLabel) {
+  // Parse chart markers
+  let html = parseAIText(rawText);
+
+  // Check for chart markers
+  let chartHtml = '';
+  const analyticsData = getLatestAnalytics();
+
+  if (rawText.includes('[CHART:agency]')) {
+    chartHtml += renderAgencyBarChart(analyticsData);
+  }
+  if (rawText.includes('[CHART:priority]')) {
+    chartHtml += renderPriorityDonut(analyticsData);
+  }
+  if (rawText.includes('[CHART:sla]')) {
+    chartHtml += renderSLATable();
+  }
+
+  const langBadge = langLabel
+    ? `<div><span class="lang-indicator">🌐 ${langLabel}</span></div>`
+    : '';
+
+  const list = document.getElementById('messageList');
+  const div = document.createElement('div');
+  div.className = 'msg-group ai';
+  div.innerHTML = `
+    <div class="ai-avatar-row">
+      <div class="ai-avatar">🤖</div>
+      <div class="ai-bubble-wrap">
+        <div class="bubble ai">${html}${chartHtml}</div>
+        ${langBadge}
+        <div class="msg-time">${nowStr()} · <span style="color:#2563eb;font-weight:700">Claude AI</span></div>
+      </div>
+    </div>`;
+  list.appendChild(div);
+
+  // If charts were added, Chart.js needs the canvas to exist in DOM first
+  scrollBottom();
+}
+
+function parseAIText(text) {
+  // Remove chart markers from displayed text
+  let t = text.replace(/\[CHART:(agency|priority|sla)\]/g, '').trim();
+
+  // Bold **text**
+  t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+  // Bullet lists
+  t = t.replace(/^[-•]\s+(.+)$/gm, '<li>$1</li>');
+  t = t.replace(/(<li>.*<\/li>)/s, match => '<ul>' + match + '</ul>');
+
+  // Numbered lists
+  t = t.replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>');
+
+  // Line breaks to paragraphs
+  const paras = t.split(/\n\n+/).filter(p => p.trim());
+  if (paras.length > 1) {
+    t = paras.map(p => p.startsWith('<ul>') || p.startsWith('<li>') ? p : `<p>${p.replace(/\n/g,'<br>')}</p>`).join('');
+  } else {
+    t = t.replace(/\n/g, '<br>');
+  }
+
+  return t;
+}
+
+function appendTyping() {
+  const id = 'typing_' + Date.now();
+  const list = document.getElementById('messageList');
+  const div = document.createElement('div');
+  div.id = id;
+  div.className = 'msg-group ai';
+  div.innerHTML = `
+    <div class="ai-avatar-row">
+      <div class="ai-avatar">🤖</div>
+      <div class="ai-bubble-wrap">
+        <div class="typing-dots"><span></span><span></span><span></span></div>
+      </div>
+    </div>`;
+  list.appendChild(div);
+  scrollBottom();
+  return id;
+}
+
+function removeTyping(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+let _cachedAnalytics = null;
+function getLatestAnalytics() {
+  if (_cachedAnalytics) return _cachedAnalytics;
+  try { return JSON.parse(CONTEXT_SUMMARY); } catch(e) { return {}; }
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function nowStr() {
+  return new Date().toLocaleTimeString('en-SG', { hour:'2-digit', minute:'2-digit', hour12:false });
+}
+
+function scrollBottom() {
+  const el = document.getElementById('chatScroll');
+  requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
+}
+
+function setLoading(v) {
+  isLoading = v;
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = v;
+  btn.style.opacity = v ? '0.5' : '1';
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+window.quickSend = function(text) {
+  const input = document.getElementById('chatInput');
+  input.value = text;
+  autoResize(input);
+  sendMessage();
+};
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+(async () => {
+  const analytics = await loadLiveCases();
+  _cachedAnalytics = analytics;
+  CONTEXT_SUMMARY = JSON.stringify(analytics);
+})();
+</script>
+
+</body>
+</html>

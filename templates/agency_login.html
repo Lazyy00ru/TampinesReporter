@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Tampines Estate Reporter — Agency Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<!-- keep your same HTML above -->
+
+<style>
+:root {
+  --ink: #f3fcff;
+  --accent: #00b7eb;
+  --ok: #00b7eb;
+  --err: #ef4444;
+
+  --border: rgba(0,183,235,0.12);
+  --border-f: rgba(0,183,235,0.38);
+
+  --text: #081226;
+  --muted: rgba(8,18,38,0.58);
+
+  --cyan1: #00ffff;
+  --cyan2: #00ebff;
+  --cyan3: #00b7eb;
+  --cyan4: #62c1d0;
+
+  --card: rgba(255,255,255,0.86);
+}
+
+*,*::before,*::after{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+  -webkit-tap-highlight-color:transparent;
+}
+
+body{
+  font-family:'DM Sans',sans-serif;
+  min-height:100dvh;
+  background:linear-gradient(135deg,#d7eef4 0%,#bddce7 45%,#9fc9dc 100%);
+  color:var(--text);
+  display:flex;
+  flex-direction:column;
+  overflow-x:hidden;
+}
+
+.bg-canvas{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  overflow:hidden;
+  pointer-events:none;
+}
+
+.bg-canvas::before{
+  content:'';
+  position:absolute;
+  top:-120px;
+  left:-80px;
+  width:600px;
+  height:600px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(0,255,255,0.24) 0%,transparent 70%);
+  animation:drift1 9s ease-in-out infinite alternate;
+}
+
+.bg-canvas::after{
+  content:'';
+  position:absolute;
+  bottom:-80px;
+  right:-60px;
+  width:500px;
+  height:500px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(0,183,235,0.18) 0%,transparent 65%);
+  animation:drift2 11s ease-in-out infinite alternate;
+}
+
+.bg-spot{
+  position:absolute;
+  top:40%;
+  left:55%;
+  width:320px;
+  height:320px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(98,193,208,0.14) 0%,transparent 70%);
+  animation:drift3 14s ease-in-out infinite alternate;
+}
+
+.bg-grid{
+  position:absolute;
+  inset:0;
+  background-image:
+    linear-gradient(rgba(0,183,235,0.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,183,235,0.035) 1px,transparent 1px);
+  background-size:32px 32px;
+}
+
+@keyframes drift1{
+  0%{transform:translate(0,0) scale(1)}
+  100%{transform:translate(30px,40px) scale(1.08)}
+}
+@keyframes drift2{
+  0%{transform:translate(0,0) scale(1)}
+  100%{transform:translate(-24px,-30px) scale(1.05)}
+}
+@keyframes drift3{
+  0%{transform:translate(0,0)}
+  100%{transform:translate(-20px,20px)}
+}
+@keyframes pulse{
+  0%,100%{opacity:.5;transform:scale(1)}
+  50%{opacity:1;transform:scale(1.35)}
+}
+@keyframes spin{
+  to{transform:rotate(360deg)}
+}
+
+.brand-bar{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.brand-icon{
+  width:46px;
+  height:46px;
+  border-radius:14px;
+  flex-shrink:0;
+  background:linear-gradient(135deg,#00ffff 0%,#00ebff 45%,#00b7eb 100%);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 8px 30px rgba(0,183,235,0.25);
+}
+
+.brand-icon svg{
+  width:26px;
+  height:26px;
+}
+
+.brand-name{
+  font-family:'Syne',sans-serif;
+  font-size:16px;
+  font-weight:800;
+  color:var(--text);
+  letter-spacing:-0.3px;
+  line-height:1;
+}
+
+.brand-sub{
+  font-size:10px;
+  font-weight:500;
+  color:var(--muted);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-top:3px;
+}
+
+.hero-eyebrow{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  background:rgba(0,235,255,0.16);
+  border:1px solid rgba(0,183,235,0.24);
+  border-radius:40px;
+  padding:5px 13px;
+  font-size:11px;
+  font-weight:600;
+  color:#0096d1;
+  letter-spacing:0.8px;
+  text-transform:uppercase;
+  margin-bottom:18px;
+}
+
+.hero-eyebrow .dot{
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#00b7eb;
+  animation:pulse 2s ease-in-out infinite;
+}
+
+.hero-title{
+  font-family:'Syne',sans-serif;
+  font-weight:800;
+  color:var(--text);
+  line-height:1.08;
+  margin-bottom:14px;
+}
+
+.hero-title em{
+  font-style:normal;
+  color:#0096d1;
+}
+
+.hero-desc{
+  line-height:1.65;
+  color:var(--muted);
+  font-weight:400;
+}
+
+/* ═══════════════════════════════════════
+   LIQUID GLASS LOGIN CARD
+═══════════════════════════════════════ */
+
+.form-card{
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+  background:linear-gradient(
+    135deg,
+    rgba(255,255,255,0.22) 0%,
+    rgba(255,255,255,0.10) 45%,
+    rgba(255,255,255,0.06) 100%
+  );
+  border:1px solid rgba(255,255,255,0.34);
+  border-radius:28px;
+  padding:28px 24px 30px;
+  backdrop-filter:blur(30px) saturate(180%);
+  -webkit-backdrop-filter:blur(30px) saturate(180%);
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.45),
+    inset 0 -1px 0 rgba(255,255,255,0.08),
+    0 16px 45px rgba(0,50,80,0.18);
+  transition:transform .25s ease, box-shadow .25s ease;
+}
+
+
+
+/* top glossy layer */
+.form-card::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,0.55) 0%,
+      rgba(255,255,255,0.10) 35%,
+      transparent 65%
+    );
+
+  pointer-events:none;
+}
+
+/* floating liquid reflection */
+.form-card::after{
+  content:'';
+  position:absolute;
+
+  top:-40%;
+  left:-20%;
+
+  width:65%;
+  height:220%;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,0.24),
+      transparent
+    );
+
+  transform:rotate(18deg);
+
+  animation:glassFlow 8s linear infinite;
+
+  pointer-events:none;
+}
+
+@keyframes glassFlow{
+  0%{
+    transform:translateX(-120%) rotate(18deg);
+  }
+
+  100%{
+    transform:translateX(260%) rotate(18deg);
+  }
+}
+
+/* hover floating effect */
+.form-card:hover{
+  transform:translateY(-2px);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.68),
+    inset 0 -1px 0 rgba(255,255,255,0.12),
+    0 18px 45px rgba(0,110,170,0.22),
+    0 34px 80px rgba(0,50,90,0.20);
+}
+
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.field-label{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.field-label-text{
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  color:rgba(8,18,38,0.55);
+}
+
+.badge-required{
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:0.8px;
+  text-transform:uppercase;
+  color:#0096d1;
+  background:rgba(0,235,255,0.13);
+  border:1px solid rgba(0,183,235,0.24);
+  padding:2px 8px;
+  border-radius:20px;
+}
+
+.input-wrap{
+  position:relative;
+  display:flex;
+  align-items:center;
+  background:rgba(255,255,255,0.96);
+  border:1.5px solid rgba(0,183,235,0.16);
+  border-radius:14px;
+  overflow:hidden;
+  transition:border-color 0.2s,background 0.2s,box-shadow 0.2s;
+}
+
+.input-wrap:focus-within{
+  border-color:var(--border-f);
+  background:#ffffff;
+  box-shadow:0 0 0 4px rgba(0,183,235,0.08);
+}
+
+.input-wrap.valid{
+  border-color:rgba(0,183,235,0.55);
+}
+
+.input-wrap.invalid{
+  border-color:rgba(239,68,68,0.55);
+}
+
+.input-icon{
+  width:44px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+  color:rgba(0,150,209,0.55);
+}
+
+.input-icon svg{
+  width:18px;
+  height:18px;
+}
+
+.input-wrap input{
+  flex:1;
+  background:transparent;
+  border:none;
+  outline:none;
+  padding:16px 0;
+  font-family:'DM Sans',sans-serif;
+  font-size:15px;
+  font-weight:500;
+  color:#081226;
+  min-width:0;
+}
+
+.input-wrap input::placeholder{
+  color:rgba(8,18,38,0.42);
+}
+
+.input-check{
+  width:36px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#00b7eb;
+  opacity:0;
+  transition:opacity 0.2s;
+  flex-shrink:0;
+}
+
+.input-wrap.valid .input-check{
+  opacity:1;
+}
+
+.input-check svg{
+  width:16px;
+  height:16px;
+}
+
+.divider{
+  height:1px;
+  background:rgba(0,183,235,0.10);
+  margin:-4px 0;
+}
+
+/* ═══════════════════════════════════════
+   LIQUID GLASS SIGN IN BUTTON
+═══════════════════════════════════════ */
+
+.cta-btn{
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+
+  width:100%;
+  padding:18px;
+  border:none;
+  border-radius:18px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(0,255,255,0.72) 0%,
+      rgba(0,210,255,0.62) 42%,
+      rgba(0,130,230,0.82) 100%
+    );
+
+  color:#ffffff;
+  font-family:'DM Sans',sans-serif;
+  font-size:16px;
+  font-weight:800;
+
+  cursor:pointer;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+
+  backdrop-filter:blur(22px) saturate(180%);
+  -webkit-backdrop-filter:blur(22px) saturate(180%);
+
+  border:1px solid rgba(255,255,255,0.42);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.55),
+    inset 0 -1px 0 rgba(255,255,255,0.16),
+    0 12px 28px rgba(0,120,200,0.28),
+    0 18px 45px rgba(0,80,140,0.18);
+
+  transition:
+    transform .18s ease,
+    box-shadow .25s ease,
+    opacity .25s ease;
+}
+
+/* glossy top layer */
+.cta-btn::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+
+  background:
+    linear-gradient(
+      120deg,
+      rgba(255,255,255,0.68) 0%,
+      rgba(255,255,255,0.22) 28%,
+      transparent 55%
+    );
+
+  opacity:.95;
+  pointer-events:none;
+}
+
+/* animated liquid shine */
+.cta-btn::after{
+  content:'';
+  position:absolute;
+  top:-60%;
+  left:-30%;
+
+  width:70%;
+  height:220%;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,0.38),
+      transparent
+    );
+
+  transform:rotate(24deg);
+  animation:liquidMove 4.5s linear infinite;
+
+  pointer-events:none;
+}
+
+@keyframes liquidMove{
+  0%{
+    transform:translateX(-120%) rotate(24deg);
+  }
+  100%{
+    transform:translateX(260%) rotate(24deg);
+  }
+}
+
+.cta-btn:hover{
+  transform:translateY(-2px);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.72),
+    inset 0 -1px 0 rgba(255,255,255,0.22),
+    0 18px 40px rgba(0,140,220,0.36),
+    0 28px 60px rgba(0,90,160,0.22);
+}
+
+.cta-btn:active{
+  transform:scale(0.985);
+}
+
+.cta-btn.loading .btn-label,
+.cta-btn.loading .cta-arrow{
+  display:none;
+}
+
+.cta-btn:not(.loading) .btn-spinner{
+  display:none;
+}
+
+.btn-spinner{
+  width:20px;
+  height:20px;
+  border:2.5px solid rgba(255,255,255,0.3);
+  border-top-color:#fff;
+  border-radius:50%;
+  animation:spin 0.7s linear infinite;
+}
+
+.cta-arrow{
+  width:18px;
+  height:18px;
+  position:relative;
+  z-index:2;
+}
+
+.btn-label{
+  position:relative;
+  z-index:2;
+}
+
+.cta-arrow{
+  width:18px;
+  height:18px;
+}
+
+.trust-bar{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.trust-item{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  font-size:11px;
+  font-weight:600;
+  color:rgba(8,18,38,0.54);
+}
+
+.trust-item svg{
+  width:13px;
+  height:13px;
+  color:#00b7eb;
+}
+
+.trust-sep{
+  color:rgba(8,18,38,0.18);
+}
+
+.resident-link{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:12px;
+  font-weight:600;
+  color:rgba(8,18,38,0.48);
+}
+
+.resident-link a{
+  color:#0096d1;
+  text-decoration:none;
+  border-bottom:1px solid rgba(0,183,235,0.28);
+}
+
+.resident-link a:hover{
+  color:#00b7eb;
+}
+
+.toast{
+  position:fixed;
+  bottom:24px;
+  left:50%;
+  transform:translateX(-50%) translateY(70px);
+  background:#081226;
+  border:1px solid rgba(239,68,68,0.4);
+  color:#fca5a5;
+  padding:12px 20px;
+  border-radius:14px;
+  font-size:13px;
+  font-weight:600;
+  z-index:999;
+  transition:transform 0.3s;
+  max-width:340px;
+  text-align:center;
+  box-shadow:0 8px 32px rgba(0,0,0,0.24);
+}
+
+.toast.show{
+  transform:translateX(-50%) translateY(0);
+}
+
+.mobile-page{
+  position:relative;
+  z-index:1;
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  padding:0 22px 44px;
+  min-height:100dvh;
+  max-width:480px;
+  margin:0 auto;
+  width:100%;
+}
+
+.mobile-page .brand-bar{
+  padding-top:28px;
+}
+
+.mobile-page .hero{
+  margin:36px 0;
+}
+
+.mobile-page .hero-title{
+  font-size:34px;
+  letter-spacing:-1px;
+}
+
+.mobile-page .hero-desc{
+  font-size:14px;
+  max-width:320px;
+}
+
+.mobile-page .trust-bar{
+  justify-content:center;
+  margin-top:22px;
+}
+
+.mobile-page .resident-link{
+  margin-top:18px;
+}
+
+.desktop-layout{
+  display:none;
+}
+
+@media(min-width:768px){
+  .mobile-page{
+    display:none;
+  }
+
+  .desktop-layout{
+    position:relative;
+    z-index:1;
+    flex:1;
+    display:flex;
+    min-height:100dvh;
+  }
+
+  .d-left{
+    flex:1;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    padding:52px 72px;
+  }
+
+  .d-left .brand-bar{
+    flex-shrink:0;
+  }
+
+  .d-left .hero-area{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:48px 0 36px;
+  }
+
+  .d-left .hero-title{
+    font-size:58px;
+    letter-spacing:-2.5px;
+  }
+
+  .d-left .hero-desc{
+    font-size:16px;
+    max-width:460px;
+    margin-top:4px;
+  }
+
+  .d-left .left-footer{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    flex-shrink:0;
+  }
+
+ .d-right{
+  width:500px;
+  flex-shrink:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:52px 56px;
+  background:linear-gradient(180deg,rgba(230,245,250,0.82) 0%,rgba(160,205,225,0.72) 100%);
+  border-left:1px solid rgba(0,80,120,0.18);
+  backdrop-filter:blur(22px);
+}
+
+  .d-right-heading{
+    font-family:'Syne',sans-serif;
+    font-size:26px;
+    font-weight:800;
+    color:var(--text);
+    margin-bottom:6px;
+    letter-spacing:-0.5px;
+  }
+
+  .d-right-sub{
+    font-size:13px;
+    color:var(--muted);
+    margin-bottom:32px;
+    line-height:1.6;
+  }
+
+  .d-right .form-card{
+    box-shadow:
+      0 20px 60px rgba(0,183,235,0.14),
+      0 32px 80px rgba(8,18,38,0.08);
+  }
+
+  .d-right-footer{
+    margin-top:24px;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="bg-canvas">
+  <div class="bg-grid"></div>
+  <div class="bg-spot"></div>
+</div>
+
+<!-- ════════════ MOBILE ════════════ -->
+<div class="mobile-page">
+  <div class="brand-bar">
+    <div class="brand-icon">
+      <svg viewBox="0 0 26 26" fill="none">
+        <rect x="3" y="3" width="20" height="20" rx="4" stroke="#90a8f8" stroke-width="1.8" fill="none"/>
+        <path d="M8 13h10M8 9h6M8 17h8" stroke="#90a8f8" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div>
+      <div class="brand-name">Agency Portal</div>
+      <div class="brand-sub">Tampines Estate Reporter</div>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-eyebrow"><span class="dot"></span>Secure Agency Access</div>
+    <div class="hero-title">Your case<br><em>command centre.</em></div>
+    <div class="hero-desc">Sign in with your agency credentials to view, manage, and update assigned cases in real time.</div>
+  </div>
+
+  <div class="form-card" id="mobileForm">
+    <div class="field">
+      <div class="field-label">
+        <span class="field-label-text">Username</span>
+        <span class="badge-required">Required</span>
+      </div>
+      <div class="input-wrap" id="m-wrap-user">
+        <div class="input-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        </div>
+        <input type="text" id="m-inp-user" placeholder="Enter username"
+          oninput="lv('m-wrap-user','m-inp-user','user')"
+          onkeydown="if(event.key==='Enter')document.getElementById('m-inp-pass').focus()"/>
+        <div class="input-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="field">
+      <div class="field-label">
+        <span class="field-label-text">Password</span>
+        <span class="badge-required">Required</span>
+      </div>
+      <div class="input-wrap" id="m-wrap-pass">
+        <div class="input-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        </div>
+        <input type="password" id="m-inp-pass" placeholder="Enter password"
+          oninput="lv('m-wrap-pass','m-inp-pass','pass')"
+          onkeydown="if(event.key==='Enter')doLogin('m-inp-user','m-inp-pass','m-wrap-user','m-wrap-pass','m-ctaBtn')"/>
+        <div class="input-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+      </div>
+    </div>
+    <button class="cta-btn" id="m-ctaBtn" onclick="doLogin('m-inp-user','m-inp-pass','m-wrap-user','m-wrap-pass','m-ctaBtn')">
+      <span class="btn-label">Sign In to Dashboard</span>
+      <div class="btn-spinner"></div>
+      <svg class="cta-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </button>
+  </div>
+
+  <div class="resident-link">🏠 Are you a resident?&nbsp;<a href="/login.html">Go to resident login</a></div>
+
+  <div class="trust-bar">
+    <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Secure login</div>
+    <span class="trust-sep">·</span>
+    <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Real-time cases</div>
+    <span class="trust-sep">·</span>
+    <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Status updates</div>
+  </div>
+</div>
+
+<!-- ════════════ DESKTOP ════════════ -->
+<div class="desktop-layout">
+
+  <!-- LEFT: hero -->
+  <div class="d-left">
+    <div class="brand-bar">
+      <div class="brand-icon">
+        <svg viewBox="0 0 26 26" fill="none">
+          <rect x="3" y="3" width="20" height="20" rx="4" stroke="#90a8f8" stroke-width="1.8" fill="none"/>
+          <path d="M8 13h10M8 9h6M8 17h8" stroke="#90a8f8" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name">Agency Portal</div>
+        <div class="brand-sub">Tampines Estate Reporter</div>
+      </div>
+    </div>
+
+    <div class="hero-area">
+      <div class="hero-eyebrow"><span class="dot"></span>Secure Agency Access</div>
+      <div class="hero-title">Your case<br><em>command centre.</em></div>
+      <div class="hero-desc">Sign in with your agency credentials to view, manage, and update assigned cases in real time.</div>
+    </div>
+
+    <div class="left-footer">
+      <div class="trust-bar">
+        <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Secure login</div>
+        <span class="trust-sep">·</span>
+        <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Real-time cases</div>
+        <span class="trust-sep">·</span>
+        <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Status updates</div>
+      </div>
+      <div class="resident-link">🏠 Are you a resident?&nbsp;<a href="/login.html">Go to resident login</a></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: form -->
+  <div class="d-right">
+    <div class="d-right-heading">Welcome back</div>
+    <div class="d-right-sub">Enter your credentials to access the case management dashboard.</div>
+
+    <div class="form-card">
+      <div class="field">
+        <div class="field-label">
+          <span class="field-label-text">Username</span>
+          <span class="badge-required">Required</span>
+        </div>
+        <div class="input-wrap" id="d-wrap-user">
+          <div class="input-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          </div>
+          <input type="text" id="d-inp-user" placeholder="Enter username"
+            oninput="lv('d-wrap-user','d-inp-user','user')"
+            onkeydown="if(event.key==='Enter')document.getElementById('d-inp-pass').focus()"/>
+          <div class="input-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="field">
+        <div class="field-label">
+          <span class="field-label-text">Password</span>
+          <span class="badge-required">Required</span>
+        </div>
+        <div class="input-wrap" id="d-wrap-pass">
+          <div class="input-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          </div>
+          <input type="password" id="d-inp-pass" placeholder="Enter password"
+            oninput="lv('d-wrap-pass','d-inp-pass','pass')"
+            onkeydown="if(event.key==='Enter')doLogin('d-inp-user','d-inp-pass','d-wrap-user','d-wrap-pass','d-ctaBtn')"/>
+          <div class="input-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+      </div>
+      <button class="cta-btn" id="d-ctaBtn" onclick="doLogin('d-inp-user','d-inp-pass','d-wrap-user','d-wrap-pass','d-ctaBtn')">
+        <span class="btn-label">Sign In to Dashboard</span>
+        <div class="btn-spinner"></div>
+        <svg class="cta-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const COUNCIL_USER = "council";
+const COUNCIL_PASS = "tampines2025";
+const COUNCIL_NAME = "Big Council / Tampines";
+
+(function(){
+  const s = sessionStorage.getItem('agency_session');
+  if(s){try{const a=JSON.parse(s);if(a.agency)window.location.replace('/agency_dashboard.html');}catch(e){}}
+})();
+
+function setWrap(id, state){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.classList.toggle('valid',   state==='valid');
+  el.classList.toggle('invalid', state==='invalid');
+}
+
+function lv(wrapId, inputId, type){
+  const v=document.getElementById(inputId).value.trim();
+  if(type==='user') setWrap(wrapId, v.length>=2?'valid':v.length>0?'invalid':'');
+  else              setWrap(wrapId, v.length>=4?'valid':v.length>0?'invalid':'');
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+function doLogin(uId, pId, wuId, wpId, btnId){
+  const user=document.getElementById(uId).value.trim();
+  const pass=document.getElementById(pId).value;
+  if(!user){setWrap(wuId,'invalid');showToast('Please enter your username.');return;}
+  if(!pass){setWrap(wpId,'invalid');showToast('Please enter your password.');return;}
+  const btn=document.getElementById(btnId);
+  btn.classList.add('loading');btn.disabled=true;
+  setTimeout(()=>{
+    if(user!==COUNCIL_USER||pass!==COUNCIL_PASS){
+      btn.classList.remove('loading');btn.disabled=false;
+      setWrap(wuId,'invalid');setWrap(wpId,'invalid');
+      showToast('❌ Incorrect credentials. Please try again.');
+      document.getElementById(pId).value='';
+      return;
+    }
+    sessionStorage.setItem('agency_session',JSON.stringify({agency:COUNCIL_NAME,loginAt:Date.now()}));
+    window.location.replace('/agency_dashboard.html');
+  },600);
+}
+</script>
+</body>
+</html>

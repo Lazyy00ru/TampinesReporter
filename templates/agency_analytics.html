@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Analytics · Tampines Estate Reporter</title>
+
+<script src="../static/base.js"
+        data-page="analytics"
+        data-title="&lt;span&gt;Case&lt;/span&gt; Analytics"
+        data-sub="Agency Intelligence · Tampines Estate">
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --white:   #ffffff;
+  --off:     #f8fafc;
+  --surface: #f1f5f9;
+  --border:  #dbe4ee;
+  --border2: #c7d3df;
+
+  --text:    #0f172a;
+  --muted:   #64748b;
+  --muted2:  #94a3b8;
+
+  --primary: #2563eb;
+  --primary-soft: #dbeafe;
+  --primary-hover: #1d4ed8;
+
+  --red:     #ef4444;
+  --orange:  #f59e0b;
+  --green:   #10b981;
+  --amber:   #facc15;
+}
+
+body {
+  background: var(--white);
+  font-family: 'Inter', 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
+  min-height: 100vh;
+  color: var(--text);
+  padding-bottom: calc(80px + env(safe-area-inset-bottom));
+}
+
+.toolbar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px; border-bottom: 1px solid var(--border);
+  overflow-x: auto; scrollbar-width: none;
+  background: var(--white); position: sticky; top: 68px; z-index: 100;
+}
+.toolbar::-webkit-scrollbar { display: none; }
+.tb-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-family: 'Inter', 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
+}
+.period-btn {
+  background: #ffffff;
+  border: 1px solid #dbe7f1;
+  border-radius: 14px;
+  padding: 8px 16px;
+  font-family: 'Inter', 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.period-btn.active {
+  background: linear-gradient(135deg, #67d8ee 0%, #5b9df1 100%);
+  border-color: transparent;
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(91, 157, 241, 0.22);
+}
+.period-btn:hover:not(.active) {
+  background: linear-gradient(135deg, #e8fbff 0%, #eef5ff 100%);
+  border-color: #bfe3ff;
+  color: #3b82f6;
+  transform: translateY(-1px);
+}
+.tb-sep { width: 1px; height: 20px; background: var(--border2); flex-shrink: 0; }
+
+.stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
+.stat-card { background: var(--white); padding: 14px 10px; text-align: center; }
+.stat-num { font-family: 'Inter', 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;; font-size: 26px; line-height: 1; color: var(--text); }
+.stat-num.red    { color: var(--red); }
+.stat-num.orange { color: var(--orange); }
+.stat-num.green  { color: var(--green); }
+.stat-label { font-size: 9px; font-weight: 600; color: #718096; text-transform: uppercase; letter-spacing: 1.2px; margin-top: 5px; }
+
+.main { padding: 0 16px 24px; max-width: 1024px; margin: 0 auto; }
+
+.section-hdr { display: flex; align-items: baseline; gap: 10px; margin: 24px 0 14px; }
+.section-hdr h2 { font-family: 'Inter', 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;; font-size: 18px; font-weight: 400; color: var(--text); line-height: 1.2; }
+.section-hdr .badge { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted2); }
+
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+@media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+
+.chart-card {
+  background: var(--white);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1.5px solid #b8edf3;
+
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.03),
+    0 8px 24px rgba(0,183,235,0.06);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.chart-card:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 6px 14px rgba(0,0,0,0.05),
+    0 16px 36px rgba(0,183,235,0.10);
+}
+.chart-card-head { display: flex; border-top: 4px solid #67d8ee; align-items: center; justify-content: space-between; padding: 14px 16px 10px; border-bottom: 1px solid var(--border); }
+.chart-card-head .title { font-size: 13px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+.chart-card-head .sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.chart-card-head .icon { font-size: 20px; }
+.chart-body { padding: 20px 16px 16px; }
+
+.donut-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 16px; justify-content: center; }
+.dl-item { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: var(--text); }
+.dl-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.dl-count { font-size: 10px; color: var(--muted); }
+
+.prio-legend { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; margin-top: 16px; }
+.pl-item { display: flex; align-items: center; gap: 8px; background: var(--off); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; }
+.pl-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.pl-label { font-size: 11px; font-weight: 600; color: var(--text); flex: 1; }
+.pl-count { font-family: 'Inter', 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;; font-size: 18px; color: var(--text); }
+
+
+
+@media (min-width: 900px) {
+  body { padding-bottom: 40px; }
+  .main { padding: 0 32px 40px; }
+  .toolbar { padding: 14px 32px; top: 68px; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- STATS STRIP -->
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-num" id="sTotalCases">&#x2014;</div>
+    <div class="stat-label">Total Cases</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-num red" id="sCritical">&#x2014;</div>
+    <div class="stat-label">Critical</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-num orange" id="sOpen">&#x2014;</div>
+    <div class="stat-label">Open</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-num green" id="sResolved">&#x2014;</div>
+    <div class="stat-label">Resolved</div>
+  </div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+
+  <span class="tb-label">Period</span>
+  <button class="period-btn active" onclick="setPeriod(this,'7d')">7 days</button>
+  <button class="period-btn" onclick="setPeriod(this,'30d')">30 days</button>
+  <button class="period-btn" onclick="setPeriod(this,'90d')">90 days</button>
+  <button class="period-btn" onclick="setPeriod(this,'1y')">1 year</button>
+  <div class="tb-sep"></div>
+  <span class="tb-label">Export</span>
+  <button class="period-btn" onclick="exportCSV()">&#11015; CSV</button>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- 2 CHARTS -->
+  <div class="section-hdr"><h2>Cases at a Glance</h2><span class="badge">Live from database</span></div>
+  <div class="two-col">
+
+    <div class="chart-card">
+      <div class="chart-card-head">
+        <div><div class="title">Agency Share</div><div class="sub">Cases dispatched per agency</div></div>
+        <span class="icon">&#129383;</span>
+      </div>
+      <div class="chart-body">
+        <canvas id="donutChart" height="220"></canvas>
+        <div class="donut-legend" id="donutLegend"></div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-card-head">
+        <div><div class="title">Priority Breakdown</div><div class="sub">Cases grouped by severity</div></div>
+        <span class="icon">&#128678;</span>
+      </div>
+      <div class="chart-body">
+        <canvas id="prioChart" height="220"></canvas>
+        <div class="prio-legend" id="prioLegend"></div>
+      </div>
+    </div>
+
+  </div>
+
+
+</div>
+
+<script>
+  function goBackHome() {
+  window.location.href = "/agency_home.html";
+}
+const AGENCY_META = [
+  { key:'NEA',          label:'NEA',          fullName:'National Environment Agency',  color:'#10b981', slaHrs:24, slaRate:92 },
+  { key:'Town Council', label:'Town Council', fullName:'Tampines Town Council',         color:'#3b82f6', slaHrs:12, slaRate:88 },
+  { key:'PUB',          label:'PUB',          fullName:'PUB (Water)',                   color:'#06b6d4', slaHrs:4,  slaRate:95 },
+  { key:'SCDF',         label:'SCDF',         fullName:'Singapore Civil Defence Force', color:'#ef4444', slaHrs:1,  slaRate:99 },
+  { key:'LTA',          label:'LTA',          fullName:'Land Transport Authority',      color:'#f59e0b', slaHrs:24, slaRate:84 },
+  { key:'NParks',       label:'NParks',       fullName:'National Parks Board',          color:'#22c55e', slaHrs:48, slaRate:81 },
+  { key:'Police',       label:'Police',       fullName:'Singapore Police Force',        color:'#8b5cf6', slaHrs:48, slaRate:78 },
+];
+
+const PRIO_CFG = [
+  { key:'CRITICAL', label:'Critical', color:'#ef4444' },
+  { key:'HIGH',     label:'High',     color:'#f59e0b' },
+  { key:'MEDIUM',   label:'Medium',   color:'#3b82f6' },
+  { key:'LOW',      label:'Low',      color:'#9ca3af' },
+];
+
+let CURRENT_PERIOD = 7;
+let DATA = null;
+let donutInst = null, prioInst = null;
+
+async function fetchData(days) {
+  try {
+    const res = await fetch('/analytics?days=' + days);
+    if (!res.ok) throw new Error('non-200');
+    const json = await res.json();
+    json.agency   = json.agency   || {};
+    json.priority = json.priority || {};
+    return json;
+  } catch(e) {
+    console.warn('[Analytics] Server unavailable, using demo data');
+    return buildDemo(days);
+  }
+}
+
+function buildDemo(days) {
+  const s = days / 30;
+  const agency = {};
+  [52,38,18,6,22,15,10].forEach((b,i) => {
+    agency[AGENCY_META[i].key] = Math.round(b * s * (0.8 + Math.random() * 0.4));
+  });
+  const priority = {
+    CRITICAL: Math.max(1, Math.round(5*s)),
+    HIGH:     Math.max(2, Math.round(20*s)),
+    MEDIUM:   Math.max(4, Math.round(45*s)),
+    LOW:      Math.max(6, Math.round(60*s)),
+  };
+  const total    = Object.values(agency).reduce((a,b)=>a+b, 0);
+  const resolved = Math.round(total * 0.72);
+  return { total, resolved, open: total - resolved, critical: priority.CRITICAL, agency, priority };
+}
+
+function renderStats() {
+  document.getElementById('sTotalCases').textContent = DATA.total    || 0;
+  document.getElementById('sCritical').textContent   = DATA.critical || 0;
+  document.getElementById('sOpen').textContent       = DATA.open     || 0;
+  document.getElementById('sResolved').textContent   = DATA.resolved || 0;
+}
+
+
+function renderDonut() {
+  if (donutInst) { donutInst.destroy(); donutInst = null; }
+  const sorted = AGENCY_META
+    .map(a => ({ ...a, count: DATA.agency[a.key] || 0 }))
+    .filter(a => a.count > 0)
+    .sort((a,b) => b.count - a.count);
+  const total = sorted.reduce((s,a) => s + a.count, 0) || 1;
+
+  donutInst = new Chart(document.getElementById('donutChart'), {
+    type: 'doughnut',
+    data: {
+      labels:   sorted.map(a => a.label),
+      datasets: [{ data: sorted.map(a => a.count), backgroundColor: sorted.map(a => a.color), borderWidth: 3, borderColor: '#fff', hoverOffset: 0 }]
+    },
+    options: {
+      cutout: '62%',
+      animation: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.raw + ' (' + Math.round(ctx.raw/total*100) + '%)' } }
+      }
+    }
+  });
+
+  document.getElementById('donutLegend').innerHTML = sorted.map(a =>
+    '<div class="dl-item"><span class="dl-dot" style="background:' + a.color + '"></span>' +
+    a.label + ' <span class="dl-count">' + a.count + '</span></div>'
+  ).join('');
+}
+
+function renderPrio() {
+  if (prioInst) { prioInst.destroy(); prioInst = null; }
+  const counts = PRIO_CFG.map(p => (DATA.priority && DATA.priority[p.key]) || 0);
+  const total  = counts.reduce((s,n) => s + n, 0) || 1;
+
+  prioInst = new Chart(document.getElementById('prioChart'), {
+    type: 'bar',
+    data: {
+      labels:   PRIO_CFG.map(p => p.label),
+      datasets: [{
+        data: counts,
+        backgroundColor: PRIO_CFG.map(p => p.color + 'cc'),
+        borderColor:     PRIO_CFG.map(p => p.color),
+        borderWidth: 1.5, borderRadius: 4, borderSkipped: false,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      animation: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ' ' + ctx.raw + ' cases (' + Math.round(ctx.raw/total*100) + '%)' } }
+      },
+      scales: {
+        x: { grid: { color: '#e8e6e1' }, ticks: { font: { family:'Inter', size:10 }, color:'#79776e' }, beginAtZero: true },
+        y: { grid: { display: false }, ticks: { font: { family:'Inter', size:12, weight:'600' }, color:'#111110' } }
+      }
+    }
+  });
+
+  document.getElementById('prioLegend').innerHTML = PRIO_CFG.map((p,i) =>
+    '<div class="pl-item"><span class="pl-dot" style="background:' + p.color + '"></span>' +
+    '<span class="pl-label">' + p.label + '</span>' +
+    '<span class="pl-count">' + counts[i] + '</span></div>'
+  ).join('');
+}
+
+
+window.setPeriod = async function(btn, key) {
+  document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  CURRENT_PERIOD = { '7d':7, '30d':30, '90d':90, '1y':365 }[key];
+  await loadAndRender(CURRENT_PERIOD);
+};
+
+window.exportCSV = function() {
+  const rows = [['Agency','Cases','SLA Target (hrs)','SLA Compliance %']];
+  AGENCY_META.forEach(a => rows.push([a.fullName, (DATA && DATA.agency[a.key]) || 0, a.slaHrs, a.slaRate]));
+  const el = document.createElement('a');
+  el.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(rows.map(r => r.join(',')).join('\n'));
+  el.download = 'tampines_analytics_' + new Date().toISOString().slice(0,10) + '.csv';
+  el.click();
+};
+
+async function loadAndRender(days) {
+  DATA = await fetchData(days);
+  renderStats();
+  renderDonut();
+  renderPrio();
+}
+window.addEventListener('DOMContentLoaded', () => loadAndRender(CURRENT_PERIOD));
+</script>
+</body>
+</html>

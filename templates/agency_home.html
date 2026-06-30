@@ -1,0 +1,2154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Agency Home · Tampines Estate Reporter</title>
+
+<!-- ── Shared navbar (header + bottom nav + CSS tokens) ── -->
+<script src="../static/base.js"
+        data-page="home"
+        data-title="Agency Home"
+        data-sub="Case Management · Tampines Estate">
+</script>
+<link rel="stylesheet" href="/static/agency-custom.css">
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background: #FFFFFF;
+    font-family: var(--b-font);
+    color: #11181C;
+    line-height: 1.4;
+  }
+
+  /* SHARP TYPOGRAPHY */
+  h1, h2, h3, button, .section-title, .ts-lbl, .wb-hello, .asc-title {
+    letter-spacing: -0.01em;
+  }
+
+  /* common container spacing */
+  .section-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #6C7A91;
+    margin-bottom: 14px;
+    margin-top: 4px;
+  }
+
+  /* ----- CARDS & BORDERS – clean white ----- */
+  .welcome-banner, .top-stat, .agency-status-card {
+    background: #FFFFFF;
+    border: 1px solid #EFF2F8;
+    border-radius: 24px;
+    transition: all 0.2s ease;
+  }
+
+  .welcome-banner {
+    padding: 20px 20px;
+    margin-bottom: 20px;
+    background: #FFFFFF;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02), 0 0 0 1px #FFFFFF inset;
+  }
+
+  .wb-hello {
+    font-size: 11px;
+    font-weight: 600;
+    color: #617187;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 6px;
+  }
+
+  .wb-name {
+    font-size: 20px;
+    font-weight: 800;
+    color: #11181C;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+
+  .wb-name span {
+    font-weight: 800;
+    background: linear-gradient(135deg, #1E2A47, #2D3E66);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
+  .wb-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #F8FAFE;
+    border-radius: 40px;
+    padding: 6px 14px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #2C3F64;
+    border: 1px solid #E6ECF3;
+  }
+
+  .wb-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #10B981;
+    animation: pulseClean 2s infinite;
+  }
+
+  @keyframes pulseClean {
+    0%,100% { opacity: 0.6; transform: scale(0.9);}
+    50% { opacity: 1; transform: scale(1.2);}
+  }
+
+  /* top stats grid */
+  .top-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .top-stat {
+    padding: 16px 14px;
+    border-radius: 20px;
+    border: 1px solid #EDF2F7;
+  }
+
+  .ts-icon {
+    font-size: 24px;
+    margin-bottom: 12px;
+    opacity: 0.8;
+  }
+
+  .ts-num {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .ts-num.c-blue { color: #2563EB; }
+  .ts-num.c-red { color: #E53E3E; }
+  .ts-num.c-green { color: #0F7B3A; }
+  .ts-num.c-orange { color: #EA580C; }
+
+  .ts-lbl {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6F7D95;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  /* skeleton clean */
+  .skeleton {
+    background: linear-gradient(90deg, #F1F5F9 25%, #F9FCFE 50%, #F1F5F9 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+    border-radius: 10px;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* BOTTOM NAV — provided by base.html */
+  /* .bottom-nav styles live in base-navbar-css */
+
+  .bnav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: #7E8A9E;
+    cursor: pointer;
+    border-radius: 30px;
+    padding: 8px 6px;
+    transition: 0.2s;
+  }
+
+  .bnav-btn svg {
+    width: 22px;
+    height: 22px;
+    stroke: #8E9BB0;
+    stroke-width: 1.8;
+    fill: none;
+    transition: all 0.2s;
+  }
+
+  .bnav-btn.active svg {
+    stroke: #1A3A6B;
+    stroke-width: 2.2;
+  }
+
+  .bnav-btn.active {
+    color: #1F3A6B;
+    font-weight: 700;
+  }
+
+  .bnav-btn.active span {
+    font-weight: 800;
+  }
+
+  /* mobile & desktop containers */
+  /* hide empty mobile-wrap placeholder */
+  .mobile-wrap { display: none; }
+
+  /* ── MOBILE: single column, sidebar on top ── */
+  .desktop-wrap {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    background: #FFFFFF;
+  }
+
+  .d-sidebar {
+    padding: 20px 16px 16px;
+    border-bottom: 1px solid #EEF2F8;
+    background: #FFFFFF;
+  }
+
+  .d-main {
+    padding: 16px 16px 100px; /* 100px bottom = above mobile bottom nav */
+  }
+
+  /* DESKTOP styles (≥900px) */
+  @media (min-width: 900px) {
+    .bottom-nav { display: none; }
+    .hdr-nav { display: flex; }
+
+    header {
+      left: 0;
+      right: 0;
+      width: 100%;
+      max-width: 100%;
+      padding: 0 32px;
+    }
+
+    .desktop-wrap {
+      flex-direction: row;
+      gap: 0;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0;
+      min-height: calc(100vh - 68px);
+    }
+
+    /* left sidebar */
+    .d-sidebar {
+      width: 340px;
+      flex-shrink: 0;
+      padding: 28px 24px 36px;
+      border-right: 1px solid #EEF2F8;
+      border-bottom: none;
+      position: sticky;
+      top: 68px;
+      height: calc(100vh - 68px);
+      overflow-y: auto;
+    }
+
+    .d-main {
+      padding: 28px 32px 48px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .d-sidebar .top-stats { margin-bottom: 0; }
+    .d-sidebar .welcome-banner { margin-bottom: 24px; }
+  }
+
+  @media (min-width: 1200px) {
+    .d-sidebar { width: 360px; padding: 32px 28px; }
+  }
+
+  /* error / empty state */
+  .empty-message {
+    padding: 24px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #8C9BB0;
+    text-align: center;
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid #EEF2F8;
+  }
+
+
+  /* ── RECENT REPORTS SECTION ── */
+  .report-card {
+    background: #FFFFFF;
+    border: 1px solid #EFF2F8;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .report-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px 10px;
+    border-bottom: 1px solid #F0F3F9;
+  }
+
+  .report-card-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: #0E1C34;
+    letter-spacing: -0.01em;
+  }
+
+  .report-count-badge {
+    font-size: 10px;
+    font-weight: 700;
+    background: #EEF3FB;
+    color: #2D4A7A;
+    border-radius: 20px;
+    padding: 3px 10px;
+    border: 1px solid #DAE5F7;
+  }
+
+  .report-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 18px;
+    border-bottom: 1px solid #F5F7FB;
+    cursor: pointer;
+    transition: background 0.1s;
+    text-decoration: none;
+  }
+
+  .report-row:last-child { border-bottom: none; }
+  .report-row:hover { background: #FCFDFF; }
+
+  .report-prio-bar {
+    width: 3px;
+    border-radius: 2px;
+    flex-shrink: 0;
+    align-self: stretch;
+    min-height: 44px;
+  }
+
+  .report-body { flex: 1; min-width: 0; }
+
+  .report-top-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 3px;
+  }
+
+  .report-case-id {
+    font-size: 10px;
+    font-weight: 700;
+    color: #C47900;
+  }
+
+  .report-prio-chip {
+    font-size: 9px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .report-prio-chip.CRITICAL { background: #FEF2F2; color: #DC2626; }
+  .report-prio-chip.HIGH     { background: #FFF7ED; color: #EA580C; }
+  .report-prio-chip.MEDIUM   { background: #FFFBEB; color: #D97706; }
+  .report-prio-chip.LOW      { background: #F0FDF4; color: #16A34A; }
+
+  .report-status-chip {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+  .report-status-chip.Open     { background: #EFF6FF; color: #2563EB; }
+  .report-status-chip.Resolved { background: #F0FDF4; color: #16A34A; }
+
+  .report-desc {
+    font-size: 12px;
+    font-weight: 500;
+    color: #11181C;
+    line-height: 1.4;
+    margin-bottom: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .report-meta {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .report-label-tag {
+    font-size: 9px;
+    font-weight: 700;
+    background: #F0F4FB;
+    color: #344B6C;
+    padding: 2px 7px;
+    border-radius: 20px;
+  }
+
+  .report-location {
+    font-size: 10px;
+    color: #8E9BB0;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .report-time {
+    font-size: 10px;
+    color: #A8B2C1;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  .report-reporter {
+    font-size: 10px;
+    color: #6C7A91;
+    font-weight: 600;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .report-empty {
+    padding: 28px 20px;
+    text-align: center;
+    font-size: 13px;
+    color: #8C9BB0;
+    font-weight: 500;
+  }
+
+  .view-all-btn {
+    display: block;
+    text-align: center;
+    padding: 11px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #2D4A7A;
+    background: #F4F7FD;
+    border-top: 1px solid #EEF2F8;
+    cursor: pointer;
+    transition: background 0.12s;
+    text-decoration: none;
+  }
+  .view-all-btn:hover { background: #EBF1FC; }
+
+
+
+  .os-goto-btn {
+    display: block; margin: 10px 20px 0;
+    padding: 12px; text-align: center; border-radius: 14px;
+    background: #1A3A6B; color: #FFFFFF;
+    font-family: var(--b-font); font-size: 13px; font-weight: 700;
+    text-decoration: none; cursor: pointer; border: none; width: calc(100% - 40px);
+    transition: opacity 0.15s;
+  }
+  .os-goto-btn:active { opacity: 0.8; }
+
+  /* ── MAIN PANEL ── */
+  .d-main {
+    flex: 1;
+    overflow-y: auto;
+    background: #F8FAFE;
+  }
+
+  .prio-bar-row {
+    display: flex;
+    align-items: center;
+    background: #FFFFFF;
+    border: 1px solid #EEF2F8;
+    border-radius: 18px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+  }
+  .prio-bar-item { flex: 1; text-align: center; }
+  .prio-bar-num {
+    font-size: 28px; font-weight: 800;
+    letter-spacing: -0.03em; line-height: 1; margin-bottom: 5px;
+  }
+  .prio-bar-lbl {
+    font-size: 10px; font-weight: 700;
+    color: #6C7A91; text-transform: uppercase; letter-spacing: 0.3px;
+  }
+  .prio-bar-sep { width: 1px; height: 36px; background: #EEF2F8; flex-shrink: 0; }
+
+  .ai-engine-header {
+    display: flex; align-items: center;
+    justify-content: space-between; margin-bottom: 18px;
+  }
+  .ai-engine-title { font-size: 18px; font-weight: 800; color: #0E1C34; letter-spacing: -0.02em; }
+  .ai-engine-sub { font-size: 12px; color: #6C7A91; font-weight: 500; margin-top: 3px; }
+  .ai-refresh-btn {
+    font-size: 12px; font-weight: 700; color: #2D4A7A;
+    background: #EEF3FB; border: 1px solid #DAE5F7; border-radius: 20px;
+    padding: 7px 16px; cursor: pointer; transition: background 0.12s; user-select: none;
+  }
+  .ai-refresh-btn:hover { background: #DDE8F7; }
+
+  .assign-loading { padding: 40px; text-align: center; color: #8C9BB0; font-size: 13px; font-weight: 500; }
+  .assign-empty { padding: 48px 20px; text-align: center; font-size: 14px; color: #8C9BB0; font-weight: 500; }
+
+  .assign-card {
+    background: #FFFFFF; border: 1px solid #EEF2F8;
+    border-radius: 20px; margin-bottom: 16px; overflow: hidden; transition: box-shadow 0.15s;
+  }
+  .assign-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+
+  .assign-card-top {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 16px 20px 12px; border-bottom: 1px solid #F4F7FC;
+  }
+  .assign-prio-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+  .assign-card-meta { flex: 1; min-width: 0; }
+  .assign-card-row1 { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; flex-wrap: wrap; }
+  .assign-case-id { font-size: 11px; font-weight: 800; color: #C47900; }
+  .assign-prio-chip { font-size: 9px; font-weight: 800; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; }
+  .assign-prio-chip.CRITICAL { background: #FEF2F2; color: #DC2626; }
+  .assign-prio-chip.HIGH     { background: #FFF7ED; color: #EA580C; }
+  .assign-prio-chip.MEDIUM   { background: #FFFBEB; color: #D97706; }
+  .assign-prio-chip.LOW      { background: #F0FDF4; color: #16A34A; }
+  .assign-status-chip { font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 20px; margin-left: auto; }
+  .assign-status-chip.Open     { background: #EFF6FF; color: #2563EB; }
+  .assign-status-chip.Resolved { background: #F0FDF4; color: #16A34A; }
+  .assign-summary { font-size: 13px; font-weight: 600; color: #11181C; line-height: 1.4; margin-bottom: 7px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .assign-label-row { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+  .assign-label-tag { font-size: 9px; font-weight: 700; background: #F0F4FB; color: #344B6C; padding: 2px 8px; border-radius: 20px; }
+  .assign-loc { font-size: 10px; color: #8E9BB0; font-weight: 500; }
+  .assign-time { font-size: 10px; color: #B0BAC9; font-weight: 500; }
+
+  .assign-routing { display: flex; align-items: stretch; }
+  .assign-route-block { flex: 1; padding: 12px 16px; border-right: 1px solid #F0F3F9; }
+  .assign-route-block:last-child { border-right: none; }
+  .arb-label { font-size: 9px; font-weight: 700; text-transform: uppercase; color: #8C9BB0; letter-spacing: 0.4px; margin-bottom: 5px; }
+  .arb-value { font-size: 12px; font-weight: 700; color: #0E1C34; }
+  .arb-value.agency  { color: #1A3A6B; }
+  .arb-value.officer { color: #2C5F2E; }
+  .arb-value.sla     { color: #92400E; }
+  .arb-value.c-ok   { color: #047857; }
+  .arb-value.c-busy { color: #B45309; }
+  .arb-value.c-full { color: #B91C1C; }
+
+  .assign-card-footer { display: flex; align-items: center; justify-content: space-between; padding: 9px 20px; background: #FAFCFF; border-top: 1px solid #F0F3F9; }
+  .assign-reporter { font-size: 11px; color: #6C7A91; font-weight: 600; }
+  .assign-view-btn { font-size: 11px; font-weight: 700; color: #2D4A7A; background: #EEF3FB; border: 1px solid #DAE5F7; border-radius: 20px; padding: 5px 14px; text-decoration: none; transition: background 0.12s; }
+  .assign-view-btn:hover { background: #DDE8F7; }
+
+  .ai-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 9px; font-weight: 700; background: linear-gradient(135deg,#1A3A6B,#2D5FA6); color: #FFFFFF; padding: 2px 8px; border-radius: 20px; }
+
+  /* ── CONFIRM / REVIEW PANEL (MEDIUM / HIGH / CRITICAL) ── */
+ /* ── ALL Pending Case Assignment cards ── */
+.assign-card.needs-review,
+.assign-card.needs-review.prio-HIGH,
+.assign-card.needs-review.prio-CRITICAL {
+  border: 2px solid #8FE3EE !important;
+  box-shadow: 0 0 0 3px rgba(143,227,238,0.10) !important;
+  animation: none !important;
+}
+  @keyframes pulseCard {
+    0%,100% { box-shadow: 0 0 0 3px rgba(220,38,38,0.10); }
+    50%      { box-shadow: 0 0 0 6px rgba(220,38,38,0.20); }
+  }
+
+  .review-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+.review-banner.medium,
+.review-banner.high,
+.review-banner.critical {
+  background: #F3FCFD !important;
+  color: #0F4C5C !important;
+  border-bottom: 1px solid #B8EDF3 !important;
+}
+
+  .review-actions {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    background: #FAFCFF;
+    border-top: 1px solid #EEF2F8;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .btn-confirm {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 8px 18px; border-radius: 20px; border: none; cursor: pointer;
+    font-size: 12px; font-weight: 700; transition: opacity 0.15s;
+    background: #10B981; color: #FFFFFF;
+  }
+  .btn-confirm:hover { opacity: 0.85; }
+  .btn-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-reassign {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 8px 18px; border-radius: 20px; cursor: pointer;
+    font-size: 12px; font-weight: 700; transition: background 0.15s;
+    background: #EEF3FB; color: #1A3A6B; border: 1px solid #DAE5F7;
+  }
+  .btn-reassign:hover { background: #DDE8F7; }
+
+  .btn-escalate {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 8px 18px; border-radius: 20px; cursor: pointer;
+    font-size: 12px; font-weight: 700; transition: background 0.15s;
+    background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA;
+  }
+  .btn-escalate:hover { background: #FEE2E2; }
+
+  .confirmed-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 700;
+    background: #F0FDF4; color: #15803D;
+    padding: 4px 12px; border-radius: 20px;
+    border: 1px solid #BBF7D0;
+  }
+
+  .auto-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 700;
+    background: #F0F4FB; color: #344B6C;
+    padding: 4px 12px; border-radius: 20px;
+    border: 1px solid #C7D9F5;
+  }
+
+  /* Reassign modal overlay */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+    z-index: 999; display: flex; align-items: center; justify-content: center;
+    padding-top: 68px; /* push below navbar */
+    animation: fadeIn 0.15s;
+  }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+  .modal-box {
+    background: #FFFFFF; border-radius: 24px;
+    padding: 28px; width: 440px; max-width: 95vw;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+    animation: slideUp 0.18s;
+  }
+  /* Resolution briefing modal — needs flex column + full scroll */
+  #resolutionModal .modal-box {
+    width: 620px;
+    max-width: 96vw;
+    max-height: calc(100vh - 88px); /* 68px navbar + 20px breathing room */
+    height: calc(100vh - 88px);
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  @keyframes slideUp { from { transform:translateY(16px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+
+  .modal-title { font-size: 16px; font-weight: 800; color: #0E1C34; margin-bottom: 4px; }
+  .modal-sub   { font-size: 12px; color: #6C7A91; margin-bottom: 20px; }
+
+  .modal-field { margin-bottom: 16px; }
+  .modal-label { font-size: 11px; font-weight: 700; color: #6C7A91; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; }
+  .modal-select, .modal-input {
+    width: 100%; padding: 10px 14px; border: 1.5px solid #E2E8F0;
+    border-radius: 12px; font-size: 13px; font-weight: 600; color: #0E1C34;
+    font-family: inherit; background: #FAFCFF; outline: none;
+    transition: border-color 0.15s;
+  }
+  .modal-select:focus, .modal-input:focus { border-color: #2563EB; }
+
+  .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
+  .modal-btn-cancel {
+    padding: 9px 20px; border-radius: 20px; border: 1px solid #E2E8F0;
+    background: #F8FAFE; font-size: 13px; font-weight: 700; color: #6C7A91;
+    cursor: pointer;
+  }
+  .modal-btn-save {
+    padding: 9px 20px; border-radius: 20px; border: none;
+    background: #1A3A6B; font-size: 13px; font-weight: 700; color: #FFFFFF;
+    cursor: pointer; transition: opacity 0.15s;
+  }
+  .modal-btn-save:hover { opacity: 0.85; }
+
+</style>
+</head>
+<body>
+
+<!-- MOBILE LAYOUT (CLEAN) -->
+<div class="mobile-wrap">
+</div>
+
+<!-- DESKTOP LAYOUT (white sidebar + main) -->
+<div class="desktop-wrap">
+  <div class="d-sidebar">
+
+
+    <!-- ── QUICK ACTIONS ── -->
+    <div class="qa-title">Quick actions</div>
+    <div class="qa-list">
+
+      <a href="/agency_analytics.html" class="qa-item">
+        <div class="qa-icon-pill teal">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+        </div>
+        <div class="qa-text">
+          <div class="qa-label">View Full Analytics</div>
+          <div class="qa-hint">Charts, trends & resolution rates</div>
+        </div>
+        <svg class="qa-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+
+      <a href="/agency_dashboard.html" class="qa-item">
+        <div class="qa-icon-pill blue">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="7" x2="15" y2="7"/><line x1="9" y1="11" x2="15" y2="11"/><line x1="9" y1="15" x2="12" y2="15"/>
+          </svg>
+        </div>
+        <div class="qa-text">
+          <div class="qa-label">View All Cases</div>
+          <div class="qa-hint">Browse and filter all active cases</div>
+        </div>
+        <svg class="qa-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+
+      <a href="/agency_workforce.html" class="qa-item">
+        <div class="qa-icon-pill violet">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <div class="qa-text">
+          <div class="qa-label">Manage Workforce</div>
+          <div class="qa-hint">Officers, shifts & assignments</div>
+        </div>
+        <svg class="qa-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+
+      <button onclick="openCarouselManager()" class="qa-item" style="width:100%;text-align:left;cursor:pointer;">
+  <div class="qa-icon-pill green">
+    <i class="fa-solid fa-images"></i>
+  </div>
+  <div class="qa-text">
+    <div class="qa-label">Manage Home Carousel</div>
+    <div class="qa-hint">Upload and update resident home carousel images</div>
+  </div>
+  <svg class="qa-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="9 18 15 12 9 6"/>
+  </svg>
+</button>
+
+    </div>
+  </div>
+
+  <!-- ── DESKTOP MAIN CONTENT: AI ASSIGNMENT ENGINE ── -->
+  <div class="d-main">
+
+    <!-- AI Assignment Engine header -->
+    <div class="ai-engine-header">
+      <div>
+        <div class="ai-engine-title">Pending Case Assignments</div>
+        <div class="ai-engine-sub">Review and confirm officer assignments before cases proceed.</div>
+      </div>
+    </div>
+
+    <!-- Assignment cards list -->
+    <div id="d-assignCards"><div class="assign-loading">Loading assignments…</div></div>
+
+  </div>
+  <!-- ═══ CAROUSEL IMAGE MANAGER MODAL ═══ -->
+<div id="carouselManagerModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:#fff;border-radius:24px;width:100%;max-width:600px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,0.22);">
+
+    <!-- Header -->
+    <div style="padding:20px 24px 16px;border-bottom:1px solid #EEF2F8;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div>
+        <div style="font-size:16px;font-weight:800;color:#0E1C34;"><i class="fa-solid fa-images"></i> Home Carousel Manager</div>
+        <div style="font-size:12px;color:#6C7A91;margin-top:3px;">Upload custom images for each agency slide shown to residents</div>
+      </div>
+      <button onclick="closeCarouselManager()" style="width:34px;height:34px;border-radius:50%;border:1.5px solid #E2E8F0;background:#F8FAFE;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:#6C7A91;">✕</button>
+    </div>
+
+    <!-- Slide list -->
+    <div style="overflow-y:auto;padding:16px 24px 20px;flex:1;" id="carouselSlideList"></div>
+
+    <!-- Footer -->
+    <div style="padding:14px 24px;border-top:1px solid #EEF2F8;display:flex;justify-content:flex-end;gap:10px;flex-shrink:0;background:#FAFCFF;">
+      <button onclick="closeCarouselManager()" style="padding:9px 20px;border-radius:20px;border:1.5px solid #E2E8F0;background:#fff;font-size:13px;font-weight:700;color:#6C7A91;cursor:pointer;">Close</button>
+      <button onclick="saveCarouselImages()" style="padding:9px 22px;border-radius:20px;border:none;background:#8FE3EE;font-size:13px;font-weight:700;color:#0F4C5C;cursor:pointer;"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+
+<!-- BOTTOM NAV — injected by base.html -->
+
+<script>
+
+  let AGENCY = '';
+  let OFFICER_ID   = '';   // e.g. 'TC-01'
+  let OFFICER_NAME = '';   // e.g. 'Officer Ahmad Fauzi'
+
+  /* ── Auth guard ── */
+  (function(){
+    const s = sessionStorage.getItem('agency_session');
+    if(!s){ window.location.replace('/agency_login.html'); return; }
+    try{
+      const a = JSON.parse(s);
+      if(!a.agency){ window.location.replace('/agency_login.html'); return; }
+      AGENCY       = a.agency;
+      OFFICER_ID   = a.officer_id   || '';
+      OFFICER_NAME = a.officer_name || '';
+      // base.html handles header icon + agency badge — just set page-level names
+      const label = OFFICER_NAME ? `${OFFICER_NAME} · ${AGENCY}` : AGENCY;
+      const html = `<span><i class="fa-solid fa-city"></i> ${label}</span>`;
+      const mName = document.getElementById('m-agencyName');
+      const dName = document.getElementById('d-agencyName');
+      if(mName) mName.innerHTML = html;
+      if(dName) dName.innerHTML = html;
+    } catch(e){ window.location.replace('/agency_login.html'); }
+  })();
+
+  function logout(){
+    /* Handled by base.html's Sign Out button — kept for any inline calls */
+    sessionStorage.removeItem('agency_session');
+    window.location.replace('/agency_login.html');
+  }
+
+  /* ── Render recent reports ── */
+  const PRIO_COLOR_MAP = { CRITICAL:'#DC2626', HIGH:'#EA580C', MEDIUM:'#D97706', LOW:'#16A34A' };
+
+  function reportRowHTML(c) {
+    const prio   = (c.priority || 'LOW').toUpperCase();
+    const barCol = PRIO_COLOR_MAP[prio] || '#8E9BB0';
+    const status = c.status || 'Open';
+    const labels = (c.labels || '').split(',').slice(0, 3)
+      .map(l => l.trim()).filter(Boolean)
+      .map(l => `<span class="report-label-tag">${l}</span>`).join('');
+    const desc   = c.case_summary || c.transcript || 'No description';
+    const loc    = c.location ? `<span class="report-location"><i class="fa-solid fa-location-dot" style="color:red"></i> ${c.location}</span>` : '';
+    const time   = (c.timestamp || '').split(' ')[0] || '—';
+    const name   = c.resident_name ? `<i class="fa-solid fa-user"></i> ${c.resident_name}` : (c.resident_phone ? `<i class="fa-solid fa-mobile-screen-button"></i> •••${c.resident_phone.slice(-4)}` : '');
+
+    return `
+      <a class="report-row" href="/agency_dashboard.html">
+        <div class="report-prio-bar" style="background:${barCol}"></div>
+        <div class="report-body">
+          <div class="report-top-row">
+            <span class="report-case-id">${c.case_id || '—'}</span>
+            <span class="report-prio-chip ${prio}">${prio}</span>
+            <span class="report-status-chip ${status}">${status}</span>
+          </div>
+          <div class="report-desc">${desc}</div>
+          <div class="report-meta">
+            ${labels}
+            ${loc}
+            <span class="report-time">${time}</span>
+          </div>
+          ${name ? `<div class="report-reporter">${name}</div>` : ''}
+        </div>
+      </a>`;
+  }
+
+  function renderReports(allCases) {
+    /* Show most recent 8 cases */
+    const recent = allCases.slice(0, 8);
+    const totalOpen = allCases.filter(c => (c.status || 'Open') !== 'Resolved').length;
+
+    const html = recent.length
+      ? recent.map(reportRowHTML).join('')
+      : '<div class="report-empty"><i class="fa-solid fa-circle-check"></i> No reports yet</div>';
+
+    ['m-reportList', 'd-reportList'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = html;
+    });
+
+    const badge = `${totalOpen} open`;
+    ['m-reportCount', 'd-reportCount'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = badge;
+    });
+  }
+
+  /* ── AI Queue: cases needing attention (HIGH/CRITICAL or needs_clarification) ── */
+  function renderAIQueue(allCases) {
+    const urgent = allCases.filter(c => {
+      const p = (c.priority || '').toUpperCase();
+      const needsClarity = c.needs_clarif === 'True' || c.needs_clarif === true;
+      const status = (c.status || 'Open');
+      return status !== 'Resolved' && (p === 'CRITICAL' || p === 'HIGH' || needsClarity);
+    }).slice(0, 5);
+
+    const containers = ['m-aiQueue', 'd-aiQueue'];
+    containers.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (!urgent.length) {
+        el.innerHTML = '<div class="report-empty"><i class="fa-solid fa-circle-check"></i> No urgent items — all clear</div>';
+        return;
+      }
+      el.innerHTML = urgent.map(c => {
+        const prio = (c.priority || 'LOW').toUpperCase();
+        const barCol = PRIO_COLOR_MAP[prio] || '#8E9BB0';
+        const needsClarity = c.needs_clarif === 'True' || c.needs_clarif === true;
+        const badge = needsClarity
+          ? '<span style="font-size:9px;font-weight:700;background:#FEF9C3;color:#A16207;padding:2px 7px;border-radius:20px;margin-left:4px;"><i class="fa-solid fa-triangle-exclamation"></i> Needs Clarification</span>'
+          : '';
+        const assigned = c.assigned_officer ? `<div style="font-size:10px;color:#6C7A91;margin-top:3px;">👷 ${c.assigned_officer}</div>` : '';
+        const capacity = c.capacity_verdict
+          ? `<div style="font-size:10px;color:#8E9BB0;margin-top:2px;"><i class="fa-solid fa-chart-column"></i> ${c.capacity_verdict}</div>` : '';
+        return `
+          <a class="report-row" href="/agency_dashboard.html">
+            <div class="report-prio-bar" style="background:${barCol}"></div>
+            <div class="report-body">
+              <div class="report-top-row">
+                <span class="report-case-id">${c.case_id || '—'}</span>
+                <span class="report-prio-chip ${prio}">${prio}</span>
+                ${badge}
+              </div>
+              <div class="report-desc">${c.case_summary || c.transcript || 'No description'}</div>
+              ${assigned}${capacity}
+            </div>
+          </a>`;
+      }).join('');
+    });
+
+    // update AI queue count badge
+    ['m-aiQueueCount', 'd-aiQueueCount'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = urgent.length ? `${urgent.length} urgent` : 'All clear';
+    });
+  }
+
+  /* ── Main data loader ── */
+  async function loadOverview(){
+    try{
+      const resp = await fetch('/cases');
+      if(!resp.ok) throw new Error('Server error');
+      const data = await resp.json();
+      const allCasesRaw = data.cases || [];
+      // ── Filter to only this agency's cases (case-insensitive, fallback to all) ──
+      let allCases = allCasesRaw;
+      if (AGENCY) {
+        const agencyLower = AGENCY.trim().toLowerCase();
+        const filtered = allCasesRaw.filter(c =>
+          (c.agencies || '').split('|').map(a => a.trim().toLowerCase()).includes(agencyLower)
+        );
+        allCases = filtered.length > 0 ? filtered : allCasesRaw;
+      }
+      const openCases = allCases.filter(c => (c.status || 'Open') !== 'Resolved');
+
+      // ── Update stat numbers ──
+      const statVal = openCases.length;
+      ['m-statProblems', 'd-statProblems'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = statVal;
+      });
+
+      // ── Render recent reports ──
+      renderReports(allCases);
+
+      // ── Render AI queue ──
+      renderAIQueue(allCases);
+
+      // ── Render AI assignment cards ──
+      window._lastCases = allCases;
+      renderAssignCards(allCases);
+      updatePrioBar(allCases);
+      renderAgencyBreakdown(allCases);
+
+    } catch(e){
+      console.warn('loadOverview error:', e);
+      ['m-reportList','d-reportList'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.innerHTML = '<div class="report-empty"><i class="fa-solid fa-triangle-exclamation"></i> Unable to load reports</div>';
+      });
+      ['m-reportCount','d-reportCount'].forEach(id => {
+        const el = document.getElementById(id); if(el) el.textContent = '—';
+      });
+    }
+  }
+
+  /* ── Load Groq API key from Flask /config, then start ── */
+  async function init() {
+    try {
+      const resp = await fetch('/config');
+      if (resp.ok) {
+        const cfg = await resp.json();
+        window._groqKey = cfg.groq_api_key || '';
+      }
+    } catch(e) {
+      console.warn('Could not load /config, Groq will use fallback routing:', e);
+    }
+    // Smart polling: run every 5 s, skip render if data hasn't changed
+    let _homeFingerprint = '';
+    async function pollOverview() {
+      try {
+        const resp = await fetch('/cases');
+        if (!resp.ok) throw new Error('Server error');
+        const data = await resp.json();
+        const allCasesRaw = data.cases || [];
+        // ── Filter to only this agency's cases (case-insensitive, fallback to all) ──
+        let allCases = allCasesRaw;
+        if (AGENCY) {
+          const agencyLower = AGENCY.trim().toLowerCase();
+          const filtered = allCasesRaw.filter(c =>
+            (c.agencies || '').split('|').map(a => a.trim().toLowerCase()).includes(agencyLower)
+          );
+          allCases = filtered.length > 0 ? filtered : allCasesRaw;
+        }
+        const fp = allCases.map(c => c.case_id + ':' + (c.status||'')).join('|');
+        if (fp === _homeFingerprint) return;
+        _homeFingerprint = fp;
+        const openCases = allCases.filter(c => (c.status || 'Open') !== 'Resolved');
+        const statVal = openCases.length;
+        ['m-statProblems', 'd-statProblems'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = statVal;
+        });
+        renderReports(allCases);
+        renderAIQueue(allCases);
+        window._lastCases = allCases;
+        renderAssignCards(allCases);
+        updatePrioBar(allCases);
+        renderAgencyBreakdown(allCases);
+      } catch(e) {
+        console.warn('[pollOverview] error:', e);
+      }
+    }
+    loadOverview();
+    pollOverview();
+    setInterval(pollOverview, 5000);
+  }
+
+
+  /* ── AGENCY → colour map ── */
+  const AGENCY_COLOR = {
+    'NEA':          '#16A34A',
+    'Town Council': '#2563EB',
+    'PUB':          '#0891B2',
+    'SCDF':         '#DC2626',
+    'Police':       '#7C3AED',
+    'LTA':          '#EA580C',
+    'NParks':       '#65A30D',
+  };
+
+  const AGENCY_OFFICERS = {
+    'NEA':          [ { id:'NEA-01', name:'Officer Lim Wei Jie'   }, { id:'NEA-02', name:'Officer Priya Nair'    } ],
+    'Town Council': [ { id:'TC-01',  name:'Officer Ahmad Fauzi'   }, { id:'TC-02',  name:'Officer Rachel Teo'    } ],
+    'PUB':          [ { id:'PUB-01', name:'Officer Tan Boon Kiat'  }, { id:'PUB-02', name:'Officer Suresh Kumar'  } ],
+    'SCDF':         [ { id:'SCDF-01',name:'Officer Jason Ng'       }, { id:'SCDF-02',name:'Officer Hafiz Roslan'  } ],
+    'Police':       [ { id:'SPF-01', name:'Officer Chua Mei Ling'  }, { id:'SPF-02', name:'Officer David Raj'     } ],
+    'LTA':          [ { id:'LTA-01', name:'Officer Wong Kah Hoe'   }, { id:'LTA-02', name:'Officer Nur Aisyah'    } ],
+    'NParks':       [ { id:'NP-01',  name:'Officer Eugene Loh'     }, { id:'NP-02',  name:'Officer Siti Rahayu'   } ],
+  };
+  const ALL_AGENCIES = Object.keys(AGENCY_OFFICERS);
+
+  const PRIO_DOT_COLOR = { CRITICAL:'#DC2626', HIGH:'#EA580C', MEDIUM:'#D97706', LOW:'#16A34A' };
+
+  // Track officer confirmation state per case
+  // Persisted in sessionStorage so it survives page refresh within the same tab session
+  const _CONFIRMED_KEY = 'agency_confirmedCases';
+  const confirmedCases = new Set(
+    JSON.parse(sessionStorage.getItem(_CONFIRMED_KEY) || '[]')
+  );
+  function _saveConfirmedCases() {
+    sessionStorage.setItem(_CONFIRMED_KEY, JSON.stringify([...confirmedCases]));
+  }
+  const reassignedCases = {};         // case_id → { agency, officer, note }
+
+  /* ── Shared card top section (used by both LOW and review cards) ── */
+  function cardTopHTML(c) {
+    const prio   = (c.priority || 'LOW').toUpperCase();
+    const status = c.status || 'Open';
+    const labels = (c.labels || '').split(',').slice(0, 4).map(l => l.trim()).filter(Boolean)
+                    .map(l => `<span class="assign-label-tag">${l}</span>`).join('');
+    const desc   = c.case_summary || c.transcript || 'No description';
+    const time   = (c.timestamp || '').split(' ')[0] || '—';
+    const loc    = c.location ? `<span class="assign-loc"><i class="fa-solid fa-location-dot" style="color:red"></i> ${c.location}</span>` : '';
+    const needsClarity = c.needs_clarif === 'True' || c.needs_clarif === true;
+    const clarityBadge = needsClarity
+      ? `<span style="font-size:9px;font-weight:700;background:#FEF9C3;color:#A16207;padding:2px 8px;border-radius:20px;"><i class="fa-solid fa-triangle-exclamation"></i> Needs Clarification</span>`
+      : '';
+    const reportBadge = '';
+    return `
+        <div class="assign-card-top">
+          <div class="assign-prio-dot" style="background:${PRIO_DOT_COLOR[prio]||'#8E9BB0'}"></div>
+          <div class="assign-card-meta">
+            <div class="assign-card-row1">
+              <span class="assign-case-id">${c.case_id || '—'}</span>
+              <span class="assign-prio-chip ${prio}">${prio}</span>
+              ${reportBadge}
+              <span class="assign-status-chip ${status}">${status}</span>
+              ${clarityBadge ? `<span style="margin-left:4px;">${clarityBadge}</span>` : ''}
+            </div>
+            <div class="assign-summary">${desc}</div>
+            <div class="assign-label-row">${labels}${loc}<span class="assign-time">${time}</span></div>
+          </div>
+        </div>`;
+  }
+
+  /* ── Routing info rows ── */
+  function routingHTML(c, overrides) {
+    const agencies  = ((overrides && overrides.agency) ? overrides.agency : (c.agencies || ''))
+                       .split('|').map(a => a.trim()).filter(Boolean);
+    const slas      = (c.slas || '').split('|').map(s => s.trim()).filter(Boolean);
+    // Per-route officer, verdict and estimated_hrs — all stored pipe-separated
+    const officers  = (c.assigned_officer || '').split('|').map(o => o.trim());
+    const verdicts  = (c.capacity_verdict || '').split('|').map(v => v.trim());
+    const hrsArr    = (c.estimated_hrs    || '').split('|').map(h => h.trim());
+
+    const CAP_STYLE = {
+      'available':   { dot: '#10B981', cls: 'c-ok'  },
+      'on call':     { dot: '#DC2626', cls: 'c-full' },
+      'urgent':      { dot: '#EA580C', cls: 'c-busy' },
+      'busy':        { dot: '#D97706', cls: 'c-busy' },
+      'at capacity': { dot: '#DC2626', cls: 'c-full' },
+    };
+    const PRIO_DEFAULT_CAP = {
+      CRITICAL: 'on call', HIGH: 'urgent', MEDIUM: 'available', LOW: 'available',
+    };
+    const prio = (c.priority || 'LOW').toUpperCase();
+
+    // Build one agency+officer+capacity group per route
+    const routeBlocks = agencies.map((ag, i) => {
+      const agColor = AGENCY_COLOR[ag] || '#344B6C';
+      const sla     = slas[i] || '—';
+
+      // Officer: use override only for first agency (reassign targets primary)
+      let officer = officers[i] || '';
+      if (i === 0 && overrides && overrides.officer) {
+        officer = overrides.officer;
+      }
+      if (!officer || officer === '—') {
+        const roster = AGENCY_OFFICERS[ag] || [];
+        officer = roster.length ? roster[0].name : 'Duty Officer';
+      }
+
+      // Capacity
+      let rawVerdict = (verdicts[i] || '').toLowerCase();
+      if (!rawVerdict || rawVerdict === '—') rawVerdict = PRIO_DEFAULT_CAP[prio] || 'available';
+      const capStyle  = CAP_STYLE[rawVerdict] || CAP_STYLE['available'];
+      const capLabel  = rawVerdict.charAt(0).toUpperCase() + rawVerdict.slice(1);
+      const capDot    = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${capStyle.dot};margin-right:5px;vertical-align:middle;"></span>`;
+      const isBusy    = rawVerdict === 'busy' || rawVerdict === 'at capacity';
+      const overflowNote = isBusy
+        ? `<div style="margin-top:6px;font-size:10px;color:#B45309;font-weight:600;"><i class="fa-solid fa-triangle-exclamation"></i> Consider reassigning</div>`
+        : '';
+      const estHrs = hrsArr[i] ? `~${hrsArr[i]}h response` : '';
+
+      return `
+        <div class="assign-route-block">
+          <div class="arb-label"><i class="fa-solid fa-city"></i> Routed To</div>
+          <div class="arb-value agency" style="color:${agColor}">${ag}</div>
+          <div style="margin-top:6px;font-size:10px;color:#6C7A91;font-weight:600;">⏱ SLA: ${sla}</div>
+        </div>
+        <div class="assign-route-block">
+          <div class="arb-label">👷 Assigned Handyman</div>
+          <div class="arb-value officer">${officer}</div>
+          ${estHrs ? `<div style="margin-top:6px;font-size:10px;color:#6C7A91;font-weight:600;">${estHrs}</div>` : ''}
+        </div>
+        <div class="assign-route-block">
+          <div class="arb-label"><i class="fa-solid fa-chart-column"></i> Capacity</div>
+          <div class="arb-value ${capStyle.cls}">${capDot}${capLabel}</div>
+          ${overflowNote}
+        </div>`;
+    }).join('');
+
+    return `<div class="assign-routing">${routeBlocks}</div>`;
+  }
+
+  /* ── Build reporter label from case (supports merged _allReporters) ── */
+  function reporterLabel(c) {
+    if (c._allReporters && c._allReporters.length) {
+      const names = c._allReporters.slice(0, 3).map(n => `<i class="fa-solid fa-user"></i> ${n}`).join(', ');
+      return names + (c._allReporters.length > 3 ? ` +${c._allReporters.length - 3}` : '');
+    }
+    if (c.resident_name) return `<i class="fa-solid fa-user"></i> ${c.resident_name}`;
+    if (c.resident_phone) return `<i class="fa-solid fa-mobile-screen-button"></i> •••${c.resident_phone.slice(-4)}`;
+    return 'Anonymous';
+  }
+
+  /* ── Report count badge (shown when 2+ reports for same issue) ── */
+  function reportCountBadge(c) {
+    if (!c._reportCount || c._reportCount < 2) return '';
+    return `<span style="font-size:10px;font-weight:800;background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;padding:2px 9px;border-radius:20px;margin-left:6px;"><i class="fa-solid fa-clipboard-list"></i> ${c._reportCount} reports</span>`;
+  }
+
+  /* ── LOW priority card: auto-assigned, no action needed ── */
+  function lowCardHTML(c) {
+    return `
+      <div class="assign-card">
+        ${cardTopHTML(c)}
+        ${routingHTML(c, null)}
+        <div class="assign-card-footer">
+          <span class="assign-reporter">${reporterLabel(c)}</span>
+          <span class="auto-badge"><i class="fa-solid fa-robot"></i> Auto-Assigned</span>
+          <a class="assign-view-btn" href="/agency_dashboard.html" style="margin-left:8px;">View →</a>
+        </div>
+      </div>`;
+  }
+
+  /* ── MEDIUM / HIGH / CRITICAL card: officer must confirm or reassign ── */
+  function reviewCardHTML(c) {
+    const prio     = (c.priority || 'MEDIUM').toUpperCase();
+    const caseId   = c.case_id || '';
+    const _statusNorm  = (c.status || '').toLowerCase().replace(/[-\s]/g, '');
+    const isConfirmed  = (_statusNorm === 'inprogress' || _statusNorm === 'resolved') || confirmedCases.has(caseId);
+    const overrides    = reassignedCases[caseId] || null;
+
+    const reporter = reporterLabel(c);
+
+    const bannerClass  = prio === 'CRITICAL' ? 'critical' : prio === 'HIGH' ? 'high' : 'medium';
+    const bannerIcon   = prio === 'CRITICAL' ? '<i class="fa-solid fa-triangle-exclamation" style="color: red"></i>' : prio === 'HIGH' ? '<i class="fa-solid fa-triangle-exclamation"></i>' : '<i class="fa-solid fa-clipboard-list"></i>';
+    const bannerText   = prio === 'CRITICAL'
+      ? 'CRITICAL — Officer confirmation required before dispatch'
+      : prio === 'HIGH'
+      ? 'HIGH priority — Please review and confirm assignment'
+      : 'MEDIUM priority — Review AI assignment and confirm';
+
+    const multiReportBadge = (c._reportCount && c._reportCount >= 2)
+      ? `<span style="font-size:10px;font-weight:800;background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;padding:2px 9px;border-radius:20px;margin-left:auto;white-space:nowrap;"><i class="fa-solid fa-clipboard-list"></i> ${c._reportCount} reports</span>`
+      : '';
+
+    const reviewBanner = `
+      <div class="review-banner ${bannerClass}" style="display:flex;align-items:center;gap:6px;">
+        <span>${bannerIcon}</span>
+        <span>${bannerText}</span>
+        ${multiReportBadge}
+      </div>`;
+
+    // ── Capacity gate (based on primary / first route's officer) ───────────
+    // capacity_verdict is now pipe-separated; take the first segment only
+    const primaryVerdict = (overrides ? '' : (c.capacity_verdict || '').split('|')[0]).trim().toLowerCase();
+    const rawVerdict   = primaryVerdict;
+    const isAtCapacity = rawVerdict === 'at capacity';
+    const isBusy       = rawVerdict === 'busy';
+
+    let confirmBtn;
+    if (isAtCapacity) {
+      // Hard block — officer cannot take more cases
+      confirmBtn = `
+        <button class="btn-confirm" disabled title="Officer is at capacity — reassign first"
+          style="opacity:0.38;cursor:not-allowed;background:#9CA3AF;">
+          <i class="fa-solid fa-ban"></i> Officer At Capacity
+        </button>`;
+    } else if (isBusy) {
+      // Soft gate — allowed but requires an extra click + warning
+      confirmBtn = `
+        <button class="btn-confirm btn-confirm-busy" onclick="showResolutionModal('${caseId}', true)"
+          style="background:#D97706;" title="Officer is busy — click to confirm anyway">
+          <i class="fa-solid fa-triangle-exclamation"></i> Confirm Anyway
+        </button>`;
+    } else {
+      confirmBtn = `<button class="btn-confirm" onclick="showResolutionModal('${caseId}', false)"><i class="fa-solid fa-circle-check"></i> Confirm Assignment</button>`;
+    }
+    // ───────────────────────────────────────────────────────────────────────
+
+    const actionRow = isConfirmed
+      ? `<div class="review-actions">
+           <span class="confirmed-badge"><i class="fa-solid fa-circle-check"></i> Confirmed by Handyman</span>
+           ${overrides ? `<span style="font-size:11px;color:#6C7A91;margin-left:6px;">Reassigned → ${overrides.agency}</span>` : ''}
+           <a class="assign-view-btn" href="/agency_dashboard.html" style="margin-left:auto;">View →</a>
+         </div>`
+      : `<div class="review-actions">
+           ${confirmBtn}
+           <button class="btn-reassign" onclick="openReassignModal('${caseId}')"><i class="fa-solid fa-rotate"></i> Reassign</button>
+           ${prio === 'CRITICAL' ? `<button class="btn-escalate" onclick="escalateCase('${caseId}')"><i class="fa-solid fa-land-mine-on" style="color:red"></i>Escalate</button>` : ''}
+           <a class="assign-view-btn" href="/agency_dashboard.html" style="margin-left:auto;">View →</a>
+         </div>`;
+
+    return `
+      <div class="assign-card needs-review prio-${prio}" id="card-${caseId}">
+        ${reviewBanner}
+        ${cardTopHTML(c)}
+        ${routingHTML(c, overrides)}
+        <div class="assign-card-footer">
+          <span class="assign-reporter">${reporter}</span>
+          <span class="auto-label">Auto-assigned</span>
+        </div>
+        ${actionRow}
+      </div>`;
+  }
+
+  /* ── Main card dispatcher ── */
+  function assignCardHTML(c) {
+    const prio = (c.priority || 'LOW').toUpperCase();
+    if (prio === 'LOW') return lowCardHTML(c);
+    return reviewCardHTML(c);
+  }
+
+  /* ── Confirm handler (called after modal) ── */
+  async function confirmCase(caseId) {
+    confirmedCases.add(caseId);
+    _saveConfirmedCases();
+    // Persist to DB so it survives page refresh
+    try {
+      await fetch(`/cases/${caseId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'In-Progress' })
+      });
+      // Update local cache so refreshCard reads new status
+      if (window._lastCases) {
+        const c = window._lastCases.find(x => x.case_id === caseId);
+        if (c) c.status = 'In-Progress';
+      }
+    } catch(e) { console.warn('Status save failed:', e); }
+    refreshCard(caseId);
+    showToast(`<i class="fa-solid fa-circle-check"></i> Case ${caseId} confirmed and dispatched`);
+  }
+
+  /* ── Old confirmBusy removed — now handled by showResolutionModal(id, true) ── */
+
+  /* ════════════════════════════════════════════════════════════════
+     AI RESOLUTION MODAL
+     Shows how the agency should solve the problem + past case history
+     before the officer finalises the confirmation.
+  ════════════════════════════════════════════════════════════════ */
+
+  function closeResolutionModal() {
+    const m = document.getElementById('resolutionModal');
+    if (m) m.remove();
+  }
+
+  async function proceedConfirm(caseId, isBusy, resolutionPlan) {
+    closeResolutionModal();
+    confirmedCases.add(caseId);
+    _saveConfirmedCases();
+
+    // 1. Persist In-Progress status to DB
+    try {
+      await fetch(`/cases/${caseId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'In-Progress' })
+      });
+      if (window._lastCases) {
+        const c = window._lastCases.find(x => x.case_id === caseId);
+        if (c) c.status = 'In-Progress';
+      }
+    } catch(e) { console.warn('Status save failed:', e); }
+
+    refreshCard(caseId);
+
+    if (isBusy) {
+      showToast(`<i class="fa-solid fa-triangle-exclamation"></i> Case ${caseId} confirmed — officer queue busy, response time extended`);
+    } else {
+      showToast(`<i class="fa-solid fa-circle-check"></i> Case ${caseId} confirmed and dispatched`);
+    }
+
+    // 2. Send assignment email to the assigned officer
+    try {
+      const emailResp = await fetch(`/cases/${caseId}/dispatch-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resolution_plan: resolutionPlan || '' }),
+      });
+      const emailData = await emailResp.json();
+
+      if (emailData.success) {
+        const dest = emailData.email_sent_to || '';
+        const officerName = emailData.officer || 'Officer';
+        // Mask email for privacy: show first 3 chars + domain
+        const masked = dest.includes('@')
+          ? dest.slice(0, 3) + '***@' + dest.split('@')[1]
+          : dest;
+        const label = emailData.demo ? ' (demo)' : '';
+        setTimeout(() => showToast(`<i class="fa-solid fa-envelope"></i> Assignment email sent to ${officerName} (${masked})${label}`), 800);
+      } else {
+        const errMsg = emailData.error || 'Unknown error';
+        setTimeout(() => showToast(`<i class="fa-solid fa-triangle-exclamation"></i> Email not sent: ${errMsg}`), 800);
+        console.warn('[dispatch-email]', errMsg);
+      }
+    } catch(e) {
+      console.warn('dispatch-email fetch failed:', e);
+    }
+  }
+
+  /* Lightweight markdown → HTML (bold, bullets, headings) */
+  function renderMarkdown(text) {
+    return text
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/^#{1,3} (.+)$/gm, '<div style="font-size:13px;font-weight:800;color:#0E1C34;margin:14px 0 6px;">$1</div>')
+      .replace(/^[-•] (.+)$/gm, '<div style="display:flex;gap:8px;margin:4px 0;"><span style="color:#2563EB;flex-shrink:0;">•</span><span>$1</span></div>')
+      .replace(/^(\d+)\. (.+)$/gm, '<div style="display:flex;gap:8px;margin:4px 0;"><span style="color:#2563EB;font-weight:700;flex-shrink:0;">$1.</span><span>$2</span></div>')
+      .replace(/\n{2,}/g, '<div style="margin-top:10px;"></div>')
+      .replace(/\n/g, '<br>');
+  }
+
+  async function showResolutionModal(caseId, isBusy) {
+    const c = window._lastCases ? window._lastCases.find(x => x.case_id === caseId) : null;
+    if (!c) { confirmCase(caseId); return; }
+
+    const officer   = c.assigned_officer || 'Assigned Officer';
+    const agency    = (c.agencies || '').split('|')[0].trim();
+    const labels    = (c.labels  || '').split(',').map(l => l.trim()).filter(Boolean);
+    const prio      = (c.priority || 'MEDIUM').toUpperCase();
+
+    /* ── Build modal shell ── */
+    const busyBanner = isBusy ? `
+      <div style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:12px;padding:10px 14px;margin-bottom:16px;font-size:12px;font-weight:600;color:#9A3412;display:flex;align-items:center;gap:8px;">
+        <i class="fa-solid fa-triangle-exclamation"></i> ${officer} is <strong>busy</strong> — confirming will extend response time. Consider reassigning if time is critical.
+      </div>` : '';
+
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.id = 'resolutionModal';
+    modal.innerHTML = `
+      <div class="modal-box" id="res-modal-box">
+
+        <!-- Header -->
+        <div style="padding:22px 24px 16px;border-bottom:1px solid #EEF2F8;flex-shrink:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="font-size:20px;"><i class="fa-solid fa-robot"></i></span>
+              <div class="modal-title" style="margin:0;">AI Resolution Briefing</div>
+            </div>
+            <!-- Language selector -->
+            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+              <span style="font-size:16px;"><i class="fa-solid fa-globe"></i></span>
+              <select id="res-lang-select"
+                onchange="translatePlan('${caseId}')"
+                style="padding:6px 10px;border:1.5px solid #E2E8F0;border-radius:10px;
+                       font-size:12px;font-weight:700;color:#0E1C34;font-family:inherit;
+                       background:#FAFCFF;cursor:pointer;outline:none;max-width:160px;">
+                <option value="English">🇸🇬 English</option>
+                <option value="Chinese Simplified">🇨🇳 简体中文</option>
+                <option value="Malay">🇲🇾 Bahasa Melayu</option>
+                <option value="Tamil">🇮🇳 தமிழ்</option>
+                <option value="Myanmar">🇲🇲 မြန်မာဘာသာ</option>
+              </select>
+            </div>
+          </div>
+          <div style="font-size:12px;color:#6C7A91;font-weight:500;">
+            ${caseId} &nbsp;·&nbsp; ${prio} &nbsp;·&nbsp;
+            <span style="color:#0F4C5C;font-weight:700;">${agency}</span>
+            &nbsp;→&nbsp; ${officer}
+          </div>
+        </div>
+
+        <!-- Scrollable body -->
+        <div style="flex:1;min-height:0;overflow-y:auto;padding:20px 24px;" id="res-body">
+          ${busyBanner}
+
+          <!-- Tabs -->
+          <div style="display:flex;gap:6px;margin-bottom:16px;" id="res-tabs">
+            <button onclick="switchResTab('plan')"   id="tab-plan"    class="res-tab res-tab-active"><i class="fa-solid fa-clipboard-list"></i> Resolution Plan</button>
+            <button onclick="switchResTab('history')" id="tab-history" class="res-tab"><i class="fa-solid fa-clock-rotate-left"></i> Past Cases</button>
+          </div>
+
+          <!-- Plan pane -->
+          <div id="pane-plan">
+            <div id="res-plan-content" style="font-size:13px;line-height:1.75;color:#11181C;">
+              <div style="text-align:center;padding:36px 0;color:#8C9BB0;">
+                <div style="font-size:28px;margin-bottom:10px;animation:spin 1.2s linear infinite;display:inline-block;"><i class="fa-solid fa-gear"></i></div>
+                <div style="font-size:13px;font-weight:600;">Generating resolution plan…</div>
+                <div style="font-size:11px;margin-top:4px;">Analysing issue type, agency SOP and historical patterns</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- History pane (hidden) -->
+          <div id="pane-history" style="display:none;">
+            <div id="res-history-content" style="font-size:13px;line-height:1.75;color:#11181C;">
+              <div style="text-align:center;padding:36px 0;color:#8C9BB0;">
+                <div style="font-size:28px;margin-bottom:10px;animation:spin 1.2s linear infinite;display:inline-block;"><i class="fa-solid fa-magnifying-glass"></i></div>
+                <div style="font-size:13px;font-weight:600;">Loading past cases…</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="padding:14px 24px;border-top:1px solid #EEF2F8;display:flex;gap:10px;justify-content:flex-end;flex-shrink:0;background:#FAFCFF;">
+          <button class="modal-btn-cancel" onclick="closeResolutionModal()">Cancel</button>
+          <button class="modal-btn-save" id="res-confirm-btn" disabled
+            onclick="proceedConfirm('${caseId}', ${isBusy})"
+            style="opacity:0.45;transition:opacity 0.25s;">
+            ${isBusy ? '<i class="fa-solid fa-triangle-exclamation"></i> Send to Officer Anyway' : '📤 Send to Officer'}
+          </button>
+        </div>
+      </div>`;
+
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if (e.target === modal) closeResolutionModal(); });
+
+    /* ── Inject tab + spinner styles once ── */
+    if (!document.getElementById('res-modal-styles')) {
+      const s = document.createElement('style');
+      s.id = 'res-modal-styles';
+      s.textContent = `
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .res-tab {
+          padding:7px 16px;border-radius:20px;border:1.5px solid #E2E8F0;
+          font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;
+          background:#F8FAFE;color:#6C7A91;transition:all 0.15s;
+        }
+        .res-tab-active {
+          background:#8FE3EE;color:#FFFFFF;border-color:#0F4C5C;
+        }
+        .res-section {
+          background:#F8FAFE;border:1px solid #EEF2F8;border-radius:14px;
+          padding:14px 16px;margin-bottom:14px;
+        }
+        .res-section-title {
+          font-size:11px;font-weight:800;text-transform:uppercase;
+          letter-spacing:0.4px;color:#6C7A91;margin-bottom:8px;
+        }
+        .res-step {
+          display:flex;gap:12px;padding:8px 0;border-bottom:1px solid #F0F4FB;
+          align-items:flex-start;
+        }
+        .res-step:last-child { border-bottom:none; }
+        .res-step-num {
+          width:22px;height:22px;border-radius:50%;background:#8FE3EE;
+          color:#0F4C5C;font-size:11px;font-weight:800;display:flex;align-items:center;
+          justify-content:center;flex-shrink:0;margin-top:1px;
+        }
+        .res-hist-card {
+          background:#FFFFFF;border:1px solid #EEF2F8;border-radius:12px;
+          padding:12px 14px;margin-bottom:10px;
+        }
+        .res-hist-id   { font-size:10px;font-weight:800;color:#C47900;margin-bottom:3px; }
+        .res-hist-desc { font-size:12px;font-weight:500;color:#11181C;margin-bottom:6px; }
+        .res-hist-how  { font-size:12px;color:#344B6C;line-height:1.5; }
+      `;
+      document.head.appendChild(s);
+    }
+
+    /* ── Fetch historical similar cases ── */
+    let similarCases = [];
+    try {
+      const resp = await fetch('/cases');
+      const data = await resp.json();
+      const allCases = data.cases || [];
+      similarCases = allCases.filter(hc => {
+        if ((hc.status || 'Open') !== 'Resolved') return false;
+        const hLabels = (hc.labels || '').split(',').map(l => l.trim());
+        return labels.some(l => hLabels.includes(l));
+      }).slice(0, 6);
+    } catch(e) {}
+
+    /* ── Render history tab ── */
+    const histEl = document.getElementById('res-history-content');
+    if (histEl) {
+      if (similarCases.length) {
+        histEl.innerHTML = similarCases.map(hc => {
+          const hLabels = (hc.labels || '').split(',').slice(0,3).map(l =>
+            `<span style="font-size:9px;font-weight:700;background:#F0F4FB;color:#344B6C;padding:2px 7px;border-radius:20px;">${l.trim()}</span>`
+          ).join(' ');
+          const ago = hc.timestamp ? hc.timestamp.split(' ')[0] : '—';
+          return `
+            <div class="res-hist-card">
+              <div class="res-hist-id">${hc.case_id} &nbsp;·&nbsp; ${hc.priority || '—'} &nbsp;·&nbsp; ${ago}</div>
+              <div class="res-hist-desc">${hc.case_summary || hc.transcript || 'No description'}</div>
+              <div style="margin-bottom:8px;display:flex;gap:5px;flex-wrap:wrap;">${hLabels}</div>
+              <div class="res-hist-how">
+                <strong>Resolved by:</strong> ${hc.agencies || '—'} &nbsp;|&nbsp;
+                <strong>SLA:</strong> ${hc.slas || '—'}
+              </div>
+            </div>`;
+        }).join('');
+      } else {
+        histEl.innerHTML = `
+          <div style="text-align:center;padding:32px 0;color:#8C9BB0;">
+            <div style="font-size:28px;margin-bottom:8px;">📂</div>
+            <div style="font-size:13px;font-weight:600;">No resolved similar cases yet</div>
+            <div style="font-size:11px;margin-top:4px;">History builds up as cases are closed</div>
+          </div>`;
+      }
+    }
+
+    /* ── Call AI for resolution plan ── */
+    const histContext = similarCases.length
+      ? similarCases.map(hc =>
+          `Case ${hc.case_id} (${hc.priority}): ${hc.labels} at ${hc.location || 'unknown location'}. ` +
+          `Handled by ${hc.agencies}, SLA ${hc.slas}. Summary: ${hc.case_summary || '—'}`
+        ).join('\n')
+      : 'No historical resolved cases available.';
+
+    /* ── Store context so translatePlan() can re-use it ── */
+    window._resBriefingContext = {
+      caseId, prio, agency, officer, labels, c, histContext, isBusy
+    };
+
+    await _fetchResolutionPlan('English');
+  }
+
+  /* ── Re-generate the resolution plan in a chosen language ── */
+  async function translatePlan(caseId) {
+    const sel = document.getElementById('res-lang-select');
+    const lang = sel ? sel.value : 'English';
+    await _fetchResolutionPlan(lang);
+  }
+
+  /* ── Core plan fetch — called on first load AND on language switch ── */
+  async function _fetchResolutionPlan(language) {
+    const ctx = window._resBriefingContext;
+    if (!ctx) return;
+    const { caseId, prio, agency, officer, labels, c, histContext, isBusy } = ctx;
+
+    /* Show spinner */
+    const planEl = document.getElementById('res-plan-content');
+    if (planEl) planEl.innerHTML = `
+      <div style="text-align:center;padding:36px 0;color:#8C9BB0;">
+        <div style="font-size:28px;margin-bottom:10px;animation:spin 1.2s linear infinite;display:inline-block;"><i class="fa-solid fa-gear"></i></div>
+        <div style="font-size:13px;font-weight:600;">Generating resolution plan…</div>
+        <div style="font-size:11px;margin-top:4px;">Translating to ${language}</div>
+      </div>`;
+
+    /* Disable confirm while loading */
+    const btn = document.getElementById('res-confirm-btn');
+    if (btn) { btn.disabled = true; btn.style.opacity = '0.45'; }
+
+    const langInstruction = language === 'English'
+      ? 'Write the entire response in English.'
+      : `Write the ENTIRE response in ${language}. This includes ALL section headers, bullet points, tips, and every word of content. Do NOT use English anywhere except for proper nouns (case IDs, agency names like NEA/PUB/SCDF/LTA/NParks/Town Council, officer names).`;
+
+    const systemPrompt = `You are an expert estate operations advisor for Tampines Town Council, Singapore.
+When given a case, produce a clear, actionable briefing for the responding officer.
+
+Structure your response in exactly these 3 sections using these headers:
+## Step-by-Step Resolution Plan
+## ⏱️ Timeline & Milestones
+## 💡 Tips & Watch-outs
+
+Keep each section concise (3-5 bullet points max). Use Singapore context (HDB blocks, town council SOPs).
+Write for field officers — practical, no fluff.
+
+${langInstruction}`;
+
+    const userPrompt = `Case ID: ${caseId}
+Issue labels: ${labels.join(', ')}
+Priority: ${prio}
+Location: ${c.location || 'Not specified'}
+Description: ${c.case_summary || c.transcript || 'No description'}
+Assigned agency: ${agency}
+Assigned officer: ${officer}
+SLA: ${c.slas || '—'}
+
+Historical similar resolved cases:
+${histContext}
+
+Generate the resolution briefing now.`;
+
+    try {
+      const resp = await fetch('/api/gemini-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system: systemPrompt,
+          messages: [{ role: 'user', content: userPrompt }]
+        })
+      });
+      const data   = await resp.json();
+      const planMd = data.content || 'Unable to generate plan.';
+
+      // Store plan so proceedConfirm can include it in the dispatch email
+      window._currentPlanMd = planMd;
+
+      if (planEl) planEl.innerHTML = renderMarkdown(planMd);
+
+    } catch(e) {
+      window._currentPlanMd = '';
+      if (planEl) planEl.innerHTML = `
+        <div style="color:#B91C1C;font-size:13px;padding:16px;background:#FEF2F2;border-radius:12px;">
+          <i class="fa-solid fa-triangle-exclamation"></i> Could not generate AI plan. You can still confirm the assignment.
+        </div>`;
+    }
+
+    /* ── Enable confirm button once AI has responded ── */
+    if (btn) {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.onclick = () => proceedConfirm(caseId, isBusy, window._currentPlanMd || '');
+    }
+  }
+
+  function switchResTab(tab) {
+    document.getElementById('pane-plan').style.display    = tab === 'plan'    ? '' : 'none';
+    document.getElementById('pane-history').style.display = tab === 'history' ? '' : 'none';
+    document.getElementById('tab-plan').className    = 'res-tab' + (tab === 'plan'    ? ' res-tab-active' : '');
+    document.getElementById('tab-history').className = 'res-tab' + (tab === 'history' ? ' res-tab-active' : '');
+  }
+
+  /* ── Escalate handler ── */
+  async function escalateCase(caseId) {
+    if (!confirm(`Escalate ${caseId} to SCDF / Emergency services?`)) return;
+    confirmedCases.add(caseId);
+    _saveConfirmedCases();
+    try {
+      await fetch(`/cases/${caseId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'In-Progress' })
+      });
+      if (window._lastCases) {
+        const c = window._lastCases.find(x => x.case_id === caseId);
+        if (c) c.status = 'In-Progress';
+      }
+    } catch(e) { console.warn('Status save failed:', e); }
+    refreshCard(caseId);
+    showToast(`<i class="fa-solid fa-land-mine-on" style="color:red"></i> Case ${caseId} escalated to emergency services`);
+  }
+
+  /* ── Re-render a single card by caseId ── */
+  function refreshCard(caseId) {
+    if (!window._lastCases) return;
+    const c = window._lastCases.find(x => x.case_id === caseId);
+    if (!c) return;
+    const el = document.getElementById(`card-${caseId}`);
+    if (!el) return;
+    const tmp = document.createElement('div');
+    tmp.innerHTML = reviewCardHTML(c);
+    el.replaceWith(tmp.firstElementChild);
+  }
+
+  /* ── Toast notification ── */
+  function showToast(msg) {
+  let t = document.getElementById('globalToast');
+
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'globalToast';
+    document.body.appendChild(t);
+  }
+
+  t.innerHTML = msg;
+
+  t.style.cssText = `
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+
+    background: #8FE3EE;
+    color: #0F4C5C;
+    border: 1px solid #B8EDF3;
+
+    padding: 12px 22px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    z-index: 99999;
+
+    box-shadow: 0 8px 24px rgba(21,145,234,0.12);
+
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    width: auto;
+    max-width: 90vw;
+    white-space: nowrap;
+
+    opacity: 1;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  `;
+
+  requestAnimationFrame(() => {
+    t.style.transform = 'translateX(-50%) translateY(0)';
+  });
+
+  clearTimeout(t._timer);
+
+  t._timer = setTimeout(() => {
+    t.style.opacity = '0';
+    t.style.transform = 'translateX(-50%) translateY(10px)';
+  }, 3000);
+}
+
+  /* ── Reassign modal ── */
+  let _reassignTarget = null;
+
+  /* Build officer <options> for a given agency */
+  function officerOptions(agency, selectedId) {
+    const officers = AGENCY_OFFICERS[agency] || [];
+    return officers.map(o =>
+      `<option value="${o.id}" ${o.id === selectedId ? 'selected' : ''}>${o.name} (${o.id})</option>`
+    ).join('');
+  }
+
+  /* Refresh officer dropdown when agency changes */
+  function onModalAgencyChange() {
+    const agency = document.getElementById('modal-agency').value;
+    const sel = document.getElementById('modal-officer');
+    sel.innerHTML = officerOptions(agency, '');
+  }
+
+  function openReassignModal(caseId) {
+    _reassignTarget = caseId;
+    const c = window._lastCases ? window._lastCases.find(x => x.case_id === caseId) : null;
+    const currentAgency  = c ? (c.agencies||'').split('|')[0].trim() : ALL_AGENCIES[0];
+    const currentOfficerId = c ? (c.assigned_officer || '') : '';
+
+    const agencyOptions = ALL_AGENCIES.map(a =>
+      `<option value="${a}" ${a === currentAgency ? 'selected' : ''}>${a}</option>`
+    ).join('');
+
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.id = 'reassignModal';
+    modal.innerHTML = `
+      <div class="modal-box">
+        <div class="modal-title"><i class="fa-solid fa-rotate"></i> Reassign Case ${caseId}</div>
+        <div class="modal-sub">Override the AI suggestion — select agency then choose an officer</div>
+        <div class="modal-field">
+          <div class="modal-label">Agency</div>
+          <select class="modal-select" id="modal-agency" onchange="onModalAgencyChange()">${agencyOptions}</select>
+        </div>
+        <div class="modal-field">
+          <div class="modal-label">Assign Officer</div>
+          <select class="modal-select" id="modal-officer">${officerOptions(currentAgency, currentOfficerId)}</select>
+        </div>
+        <div class="modal-field">
+          <div class="modal-label">Reason for Reassignment</div>
+          <input class="modal-input" id="modal-note" type="text" placeholder="e.g. Specialist required, officer unavailable…">
+        </div>
+        <div class="modal-footer">
+          <button class="modal-btn-cancel" onclick="closeReassignModal()">Cancel</button>
+          <button class="modal-btn-save" onclick="saveReassign()">Save & Confirm</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if (e.target === modal) closeReassignModal(); });
+  }
+
+  function closeReassignModal() {
+    const m = document.getElementById('reassignModal');
+    if (m) m.remove();
+    _reassignTarget = null;
+  }
+
+  async function saveReassign() {
+    const agency    = document.getElementById('modal-agency').value;
+    const offSel    = document.getElementById('modal-officer');
+    const officerId = offSel.value;
+    const officerName = offSel.options[offSel.selectedIndex]?.text || officerId;
+    const note      = document.getElementById('modal-note').value.trim();
+    if (!_reassignTarget) return;
+    reassignedCases[_reassignTarget] = { agency, officer: officerName, note };
+    confirmedCases.add(_reassignTarget);
+    _saveConfirmedCases();
+    try {
+      await fetch(`/cases/${_reassignTarget}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'In-Progress' })
+      });
+      if (window._lastCases) {
+        const c = window._lastCases.find(x => x.case_id === _reassignTarget);
+        if (c) c.status = 'In-Progress';
+      }
+    } catch(e) { console.warn('Status save failed:', e); }
+    closeReassignModal();
+    refreshCard(_reassignTarget);
+    showToast(`<i class="fa-solid fa-rotate"></i>Case ${_reassignTarget} reassigned to ${agency} — ${officerName}`);
+  }
+
+  /* ── Deduplicate key: same primary label + same location = same issue ── */
+  function dedupKey(c) {
+    const primaryLabel = (c.labels || '').split(',')[0].trim().toLowerCase();
+    const loc          = (c.location || '').trim().toLowerCase();
+    return `${primaryLabel}||${loc}`;
+  }
+
+  /* ── Render AI assignment cards in main panel ── */
+  function renderAssignCards(allCases) {
+    const el = document.getElementById('d-assignCards');
+    if (!el) return;
+
+    // ── If we know which officer is logged in, show only their cases ────────
+    // Falls back to all agency cases if no officer match (name mismatch / admin view)
+    let officerCases = allCases;
+    if (OFFICER_NAME) {
+      const matched = allCases.filter(c =>
+        (c.assigned_officer || '').trim().toLowerCase() === OFFICER_NAME.trim().toLowerCase()
+      );
+      officerCases = matched.length > 0 ? matched : allCases;
+    }
+
+    // Sort: CRITICAL first, then HIGH, MEDIUM, LOW; open before resolved; newest first within same priority
+    const PRIO_RANK = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
+    const sorted = [...officerCases].sort((a, b) => {
+      const pa = PRIO_RANK[(a.priority||'LOW').toUpperCase()] ?? 3;
+      const pb = PRIO_RANK[(b.priority||'LOW').toUpperCase()] ?? 3;
+      if (pa !== pb) return pa - pb;
+      const sa = (a.status||'Open') === 'Resolved' ? 1 : 0;
+      const sb = (b.status||'Open') === 'Resolved' ? 1 : 0;
+      if (sa !== sb) return sa - sb;
+      // Newest first (higher id = newer)
+      return (b.id || 0) - (a.id || 0);
+    });
+
+    // Group duplicate reports of the same issue at the same location
+    // Keep the most recent (first after sort) case as the representative;
+    // collect all unique reporters across duplicates.
+    const seen   = new Map(); // dedupKey → representative case (already mutated with _allReporters)
+    const unique = [];
+
+    for (const c of sorted) {
+      const key = dedupKey(c);
+      if (!key || key === '||') {
+        // No meaningful key — always show individually
+        unique.push(c);
+        continue;
+      }
+      if (!seen.has(key)) {
+        // First (= most recent) case for this issue: use as representative
+        const rep = Object.assign({}, c);
+        // Build a combined reporters list for the card footer
+        const name  = (c.resident_name  || '').trim();
+        const phone = (c.resident_phone || '').trim();
+        rep._allReporters = name ? [name] : (phone ? [`•••${phone.slice(-4)}`] : []);
+        rep._reportCount  = 1;
+        seen.set(key, rep);
+        unique.push(rep);
+      } else {
+        // Duplicate — merge reporter into the representative card
+        const rep   = seen.get(key);
+        const name  = (c.resident_name  || '').trim();
+        const phone = (c.resident_phone || '').trim();
+        const label = name || (phone ? `•••${phone.slice(-4)}` : '');
+        if (label && !rep._allReporters.includes(label)) {
+          rep._allReporters.push(label);
+        }
+        rep._reportCount = (rep._reportCount || 1) + 1;
+        // If the duplicate is already In-Progress / confirmed, promote the rep too
+        if ((c.status === 'In-Progress' || c.status === 'In Progress') && rep.status === 'Open') {
+          rep.status = c.status;
+        }
+      }
+    }
+
+    el.innerHTML = unique.length
+      ? unique.map(assignCardHTML).join('')
+      : '<div class="assign-empty"><i class="fa-solid fa-ban"></i> No cases yet — all clear</div>';
+  }
+
+  /* ── Update priority breakdown bar ── */
+  function updatePrioBar(allCases) {
+    const open = allCases.filter(c => (c.status||'Open') !== 'Resolved');
+    const counts = { CRITICAL:0, HIGH:0, MEDIUM:0, LOW:0 };
+    open.forEach(c => { const p = (c.priority||'LOW').toUpperCase(); if (counts[p] !== undefined) counts[p]++; });
+    const resolved = allCases.length - open.length;
+
+    const map = { 'd-statCritical': counts.CRITICAL, 'd-statHigh': counts.HIGH,
+                  'd-statMedium': counts.MEDIUM,   'd-statLow': counts.LOW,
+                  'd-statResolved': resolved };
+    Object.entries(map).forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val;
+    });
+  }
+
+// ═══ CAROUSEL IMAGE MANAGER — images stored in server DB, not browser ═══
+const CAROUSEL_SLIDES = [
+  { key: 'nea',    name: 'NEA / Town Council',    desc: 'Cleanliness & Environment',  defaultSrc: '/static/nea_image.png' },
+  { key: 'hdb',    name: 'Town Council / HDB',    desc: 'Structural & Maintenance',   defaultSrc: '/static/hdb_image.png' },
+  { key: 'sp',     name: 'SP Group / Town Council', desc: 'Electrical & Lighting',    defaultSrc: '/static/sp_image.png' },
+  { key: 'pub',    name: 'PUB / Town Council',    desc: 'Water & Drainage',           defaultSrc: '/static/pub_image.png' },
+  { key: 'scdf',   name: 'SCDF / HDB / Police',  desc: 'Safety & Fire Hazards',      defaultSrc: '/static/scdf_image.png' },
+  { key: 'police', name: 'NEA / Police / CMC',   desc: 'Noise & Nuisance',            defaultSrc: '/static/police_image.png' },
+  { key: 'nparks', name: 'NEA / NParks / AVS',   desc: 'Pest & Animals',              defaultSrc: '/static/nparks_image.png' },
+];
+
+// Staged changes (applied on Save)
+let _stagedImages   = {};   // key → base64 data URL  (new uploads)
+let _removedImages  = new Set(); // keys staged for removal
+let _dbImages       = {};   // key → base64 data URL  (currently in DB)
+
+async function openCarouselManager() {
+  // Load current images from server DB
+  try {
+    const resp = await fetch('/carousel-images');
+    _dbImages  = resp.ok ? (await resp.json()) : {};
+  } catch(e) {
+    _dbImages = {};
+  }
+
+  _renderCarouselList();
+  document.getElementById('carouselManagerModal').style.display = 'flex';
+}
+
+function _renderCarouselList() {
+  const list = document.getElementById('carouselSlideList');
+  list.innerHTML = CAROUSEL_SLIDES.map((slide) => {
+    // Staged upload takes priority, then DB, then default
+    const previewSrc = _stagedImages[slide.key] || _dbImages[slide.key] || slide.defaultSrc;
+    const hasCustom  = !!(_stagedImages[slide.key] || (_dbImages[slide.key] && !_removedImages.has(slide.key)));
+    return `
+      <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid #F0F4FB;">
+        <!-- Preview thumbnail -->
+        <div style="width:72px;height:52px;border-radius:10px;overflow:hidden;flex-shrink:0;background:#E8EDF8;border:1.5px solid #E2E8F0;position:relative;">
+          <img id="slide-preview-${slide.key}" src="${previewSrc}"
+               onerror="this.style.display='none'"
+               style="width:100%;height:100%;object-fit:cover;"/>
+          ${!hasCustom ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:#94A3B8;font-weight:700;background:rgba(248,250,254,0.85);">DEFAULT</div>` : ''}
+        </div>
+        <!-- Info -->
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:800;color:#0E1C34;">${slide.name}</div>
+          <div style="font-size:11px;color:#6C7A91;margin-top:2px;">${slide.desc}</div>
+          ${hasCustom
+            ? `<div style="font-size:10px;color:#16A34A;font-weight:700;margin-top:3px;">✓ Custom image set</div>`
+            : `<div style="font-size:10px;color:#94A3B8;font-weight:600;margin-top:3px;">Using default</div>`}
+        </div>
+        <!-- Actions -->
+        <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
+          <label style="padding:7px 14px;border-radius:20px;border:1.5px solid #8FE3EE;background:#F3FCFD;font-size:12px;font-weight:700;color:#0F4C5C;cursor:pointer;text-align:center;white-space:nowrap;">
+            📁 Upload
+            <input type="file" accept="image/*" style="display:none;" onchange="handleSlideImageUpload(event, '${slide.key}')"/>
+          </label>
+          ${hasCustom ? `<button onclick="stageRemoveSlide('${slide.key}')" style="padding:6px 14px;border-radius:20px;border:1.5px solid #8FE3EE;background:#F3FCFD;font-size:11px;font-weight:700;color:#0F4C5C;cursor:pointer;">✕ Remove</button>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function closeCarouselManager() {
+  document.getElementById('carouselManagerModal').style.display = 'none';
+  // Discard unsaved staged changes
+  _stagedImages  = {};
+  _removedImages = new Set();
+}
+
+function handleSlideImageUpload(e, key) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    _stagedImages[key] = ev.target.result;
+    _removedImages.delete(key); // un-stage any pending removal
+    _renderCarouselList();
+  };
+  reader.readAsDataURL(file);
+}
+
+function stageRemoveSlide(key) {
+  _removedImages.add(key);
+  delete _stagedImages[key];
+  _renderCarouselList();
+}
+
+async function saveCarouselImages() {
+  const btn = document.querySelector('#carouselManagerModal button[onclick="saveCarouselImages()"]');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…'; }
+
+  try {
+    // 1. Upload new/changed images
+    if (Object.keys(_stagedImages).length > 0) {
+      const res = await fetch('/carousel-images', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ images: _stagedImages }),
+      });
+      if (!res.ok) throw new Error('Upload failed: ' + await res.text());
+    }
+
+    // 2. Delete removed images
+    for (const key of _removedImages) {
+      await fetch(`/carousel-images/${key}`, { method: 'DELETE' });
+    }
+
+    _stagedImages  = {};
+    _removedImages = new Set();
+
+    // Show saved toast
+    const toast = document.createElement('div');
+
+toast.innerHTML = `
+  <i class="fa-solid fa-circle-check"></i>
+  <span>Carousel images saved</span>
+`;
+
+toast.style.cssText = `
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  background: #8FE3EE;
+  color: #0F4C5C;
+  border: 1px solid #B8EDF3;
+
+  padding: 12px 22px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  z-index: 99999;
+
+  box-shadow: 0 8px 24px rgba(21,145,234,0.12);
+
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  width: auto;
+  max-width: 90vw;
+  white-space: nowrap;
+`;
+
+document.body.appendChild(toast);
+
+setTimeout(() => {
+  toast.remove();
+}, 3000);
+    setTimeout(() => toast.remove(), 3200);
+    closeCarouselManager();
+  } catch(err) {
+    alert('Save failed: ' + err.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save'; }
+  }
+}
+
+// Close on backdrop click
+document.getElementById('carouselManagerModal').addEventListener('click', function(e) {
+  if (e.target === this) closeCarouselManager();
+});
+  init();
+</script>
+
+
+</body>
+</html>

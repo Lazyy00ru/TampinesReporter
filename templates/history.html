@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Tampines Estate Reporter — Reports</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#1a2f6e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="EstateReport">
+<link rel="apple-touch-icon" href="/static/icon-192.png">
+<link rel="stylesheet" href="/static/css/style.css?v=1">
+<link rel="stylesheet" href="/static/css/report.css?v=1">
+</head>
+<body>
+
+<!-- ════════ HIDDEN FILE INPUTS ════════ -->
+<input type="file" id="imageInput"  accept="image/*"         multiple onchange="handleImageFile(this)" style="display:none">
+<input type="file" id="videoInput"  accept="image/*,video/*" multiple onchange="handleUploadFile(this)" style="display:none">
+
+<!-- ════════ VIDEO RECORD MODAL ════════ -->
+<div class="cam-fullscreen" id="videoModal">
+  <video id="videoRecordPreview" autoplay playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000;"></video>
+  <video id="videoPlayback" controls style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;"></video>
+  <div class="cam-topbar">
+    <button class="cam-close-btn" onclick="closeVideoModal()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="cam-topbar-title">Record a Video</div>
+    <div style="width:40px;"></div>
+  </div>
+  <div id="videoRecTimer" style="display:none;position:absolute;top:110px;left:50%;transform:translateX(-50%);background:rgba(220,38,38,0.85);color:white;font-family:'Nunito',sans-serif;font-size:14px;font-weight:900;padding:6px 18px;border-radius:30px;letter-spacing:1.5px;z-index:20;backdrop-filter:blur(6px);">⏺ 00:00</div>
+  <div class="cam-guides">
+    <div class="cam-guide tl"></div><div class="cam-guide tr"></div>
+    <div class="cam-guide bl"></div><div class="cam-guide br"></div>
+  </div>
+  <!-- Idle controls -->
+  <div class="cam-controls" id="vidControlsIdle">
+    <div class="cam-hint">Point at the issue and tap Record</div>
+    <div class="cam-bottom-row">
+      <button class="cam-flip-btn" id="vidFlipBtn" onclick="flipVideoCamera()">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+      </button>
+      <button class="vid-record-btn" id="videoStartBtn" onclick="startVideoRecord()">
+        <div class="vid-record-dot"></div>
+      </button>
+      <div style="width:56px;"></div>
+    </div>
+  </div>
+  <!-- Recording controls -->
+  <div class="cam-controls" id="vidControlsRecording" style="display:none;">
+    <div class="cam-hint" style="color:#fca5a5;">Recording in progress…</div>
+    <div class="cam-bottom-row" style="justify-content:center;">
+      <button class="vid-stop-btn" onclick="stopVideoRecord()"><div class="vid-stop-square"></div></button>
+    </div>
+  </div>
+  <!-- Preview controls -->
+  <div class="cam-controls" id="vidControlsPreview" style="display:none;">
+    <div class="cam-hint">Happy with this? Use it or retake.</div>
+    <div class="cam-bottom-row">
+      <button class="cam-pill-btn cam-retake" onclick="retakeVideo()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>
+        Retake
+      </button>
+      <button class="cam-pill-btn cam-use" onclick="useVideo()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Use Video
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ CAMERA MODAL ════════ -->
+<div class="cam-fullscreen" id="cameraModal">
+  <video id="cameraPreview" autoplay playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000;"></video>
+  <img id="capturedImg" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"/>
+  <canvas id="cameraCanvas" style="display:none;"></canvas>
+  <div class="cam-topbar">
+    <button class="cam-close-btn" onclick="closeCamera()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="cam-topbar-title">Take a Photo</div>
+    <div style="width:40px;"></div>
+  </div>
+  <div class="cam-guides">
+    <div class="cam-guide tl"></div><div class="cam-guide tr"></div>
+    <div class="cam-guide bl"></div><div class="cam-guide br"></div>
+  </div>
+  <div class="cam-controls" id="camControlsLive">
+    <div class="cam-hint">Align the issue in frame</div>
+    <div class="cam-bottom-row">
+      <div style="width:56px;"></div>
+      <button class="cam-shutter" onclick="capturePhoto()">
+        <div class="cam-shutter-ring"></div>
+        <div class="cam-shutter-inner"></div>
+      </button>
+      <button class="cam-flip-btn" id="camFlipBtn" onclick="flipCamera()">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="cam-controls" id="camControlsPreview" style="display:none;">
+    <div class="cam-hint">Looking good? Use this photo.</div>
+    <div class="cam-bottom-row">
+      <button class="cam-pill-btn cam-retake" onclick="retakePhoto()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>
+        Retake
+      </button>
+      <button class="cam-pill-btn cam-use" onclick="useCapture()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Use Photo
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ LOADING SCREEN ════════ -->
+<div class="loading-screen" id="loadingScreen">
+  <div class="loading-spinner"></div>
+  <div class="loading-title">Sending your report…</div>
+  <div class="loading-steps-list">
+    <div class="ls active" id="ls1"><div class="ls-dot"></div> 🎙️ Reading your voice</div>
+    <div class="ls" id="ls2"><div class="ls-dot"></div> 📷 Analysing photo</div>
+    <div class="ls" id="ls3"><div class="ls-dot"></div> 📍 Checking location</div>
+    <div class="ls" id="ls4"><div class="ls-dot"></div> 🏢 Routing to department</div>
+  </div>
+</div>
+
+<!-- ════════ CLARIFICATION MODAL ════════ -->
+<div class="clarif-modal" id="clarifModal">
+  <div class="clarif-box">
+    <div class="clarif-title">🤔 One Quick Question</div>
+    <div class="clarif-sub">AI needs a bit more info to route your report correctly.</div>
+    <div class="clarif-q" id="clarifQuestion"></div>
+    <textarea class="clarif-textarea" id="clarifAnswer" placeholder="Type your answer here…"></textarea>
+    <div class="clarif-btns">
+      <button class="clarif-skip" onclick="submitClarification(true)">Skip</button>
+      <button class="clarif-send" onclick="submitClarification(false)">Send Report →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ SUCCESS SCREEN ════════ -->
+<div class="success-screen" id="successScreen">
+  <div class="success-header" id="successHeader">
+    <div class="success-icon" id="successIcon">✅</div>
+    <h2 id="successHeadline">Report Sent!</h2>
+    <p id="successTime"></p>
+  </div>
+  <div class="success-body">
+    <div class="info-card">
+      <div class="info-card-label">Case ID</div>
+      <div class="info-card-value big" id="caseIdVal">—</div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-label">Priority</div>
+      <span class="priority-chip" id="priorityVal">—</span>
+    </div>
+    <div class="info-card">
+      <div class="info-card-label">Message</div>
+      <div class="info-card-value" id="residentMsg"></div>
+    </div>
+    <div class="safety-card" id="safetyCard">
+      <div class="safety-title" id="safetyCardTitle"></div>
+      <div id="safetySteps"></div>
+    </div>
+    <div class="info-card" id="locationCard" style="display:none;">
+      <div class="info-card-label">Location</div>
+      <div class="info-card-value" id="locationVal"></div>
+    </div>
+    <div class="info-card" id="transcriptCard" style="display:none;">
+      <div class="info-card-label">Your Voice</div>
+      <div class="info-card-value" id="transcriptVal"></div>
+    </div>
+    <div class="info-card" id="whatsappCard" style="display:none;">
+      <div class="info-card-label">WhatsApp</div>
+      <div class="info-card-value" id="whatsappVal"></div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-label">Agencies Notified</div>
+      <div class="agency-list" id="agencyList"></div>
+    </div>
+    <button class="success-reset-btn" onclick="resetAndReport()">📋 Submit Another Report</button>
+
+  </div>
+</div>
+
+<!-- ════════ TAB BAR ════════ -->
+<div class="tab-bar">
+  <button class="tab-btn active" id="tabReport" onclick="switchTab('report')">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+    </svg>
+    Create Report
+  </button>
+  <button class="tab-btn" id="tabHistory" onclick="switchTab('history')">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/>
+    </svg>
+    My History
+  </button>
+</div>
+
+<!-- ════════════════════════════════════════
+     NEW REPORT TAB
+════════════════════════════════════════ -->
+<div class="page active" id="pageReport">
+  <div class="report-page">
+
+    <!-- GPS strip -->
+    <div class="gps-strip">
+      <div class="gps-dot searching" id="gpsDot"></div>
+      <div class="gps-text" id="gpsText">📍 Getting your location…</div>
+    </div>
+
+    <!-- Upload address strip (shown after gallery upload) -->
+    <div class="upload-addr-strip" id="uploadAddrStrip">
+      <label>📍 Where is this issue?</label>
+      <input type="text" id="uploadAddrInput" placeholder="e.g. Blk 203 Tampines Ave 3"/>
+    </div>
+
+    <!-- 2×2 action grid -->
+    <div class="act-grid">
+
+      <!-- Upload Photo -->
+      <button class="act-btn act-glass-upload" id="btnUpload" onclick="document.getElementById('videoInput').click()">
+        <div class="act-icon-center">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1a2f6e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+        </div>
+        <div class="act-glass-label">Upload Photo</div>
+        <div class="act-glass-sub">From your gallery</div>
+      </button>
+
+      <!-- Take Photo -->
+      <button class="act-btn act-glass-camera" id="btnCamera" onclick="openCamera()">
+        <div class="act-icon-center" id="camIconWrap">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1a2f6e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+        </div>
+        <div class="act-glass-label">Take Photo</div>
+        <div class="act-glass-sub">Use your camera</div>
+      </button>
+
+      <!-- Take Video -->
+      <button class="act-btn act-glass-video" id="btnVideo" onclick="openVideoModal()">
+        <div class="act-icon-center" id="videoIconWrap">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1a2f6e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="7" width="13" height="10" rx="2"/>
+            <path d="M15 9.5l5-3v11l-5-3v-5z"/>
+          </svg>
+        </div>
+        <div class="act-glass-label" id="videoTitle">Take Video</div>
+        <div class="act-glass-sub" id="videoSub">Record the issue</div>
+      </button>
+
+      <!-- Speak -->
+      <button class="act-btn act-glass-speak" id="speakBtn" onclick="toggleRecording()">
+        <div class="act-icon-center" id="speakRing">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1a2f6e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
+            <path d="M19 10v2a7 7 0 01-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        </div>
+        <div class="act-glass-label" id="speakTitle">Speak</div>
+        <div class="act-glass-sub" id="speakSub2">Describe the problem</div>
+        <div class="speak-timer" id="speakTimer" style="display:none;">00:00</div>
+        <div class="waveform" id="waveform">
+          <span class="wave-bar"></span><span class="wave-bar"></span>
+          <span class="wave-bar"></span><span class="wave-bar"></span>
+          <span class="wave-bar"></span>
+        </div>
+        <div id="speakBadge" style="display:none"></div>
+        <div id="speakSub"   style="display:none"></div>
+      </button>
+
+    </div><!-- /act-grid -->
+
+    <!-- hidden compat badges -->
+    <div id="uploadBadge" style="display:none"></div>
+    <div id="cameraBadge" style="display:none"></div>
+
+    <!-- Media gallery -->
+    <div class="media-gallery" id="mediaGallery">
+      <div class="video-wrap" id="videoWrap" style="display:none">
+        <button class="video-remove" onclick="clearVideo()">✕</button>
+        <video id="videoPreview" controls></video>
+      </div>
+      <div class="thumb-scroll" id="thumbScroll"></div>
+      <button class="add-more-pill" id="addMorePill" style="display:none"
+              onclick="document.getElementById('videoInput').click()">
+        ➕ Add more photos
+      </button>
+    </div>
+
+    <!-- Voice preview -->
+    <div class="voice-preview" id="voicePreview">
+      <div class="voice-preview-top">
+        <div class="voice-preview-icon">🎤</div>
+        <div class="voice-preview-text">
+          <strong id="voiceDuration">Voice recorded</strong>
+          <span>Tap Speak above to re-record</span>
+        </div>
+        <button class="voice-remove-btn" onclick="clearVoiceRecording()" title="Remove recording">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <audio id="voicePlayer" controls></audio>
+    </div>
+
+    <!-- Error box -->
+    <div id="errorBox"></div>
+
+    <!-- Review & Send button -->
+    <button class="send-btn" id="sendBtn" onclick="sendReport()" style="margin-top:16px;">
+      Review &amp; Send →
+    </button>
+
+  </div>
+</div>
+
+<!-- ════════ HISTORY TAB ════════ -->
+<div class="page" id="pageHistory">
+  <div class="hist-page">
+    <div class="filter-row">
+      <button class="filter-chip active" onclick="filterHistory('all',this)">All</button>
+      <button class="filter-chip" onclick="filterHistory('critical',this)">🔴 Critical</button>
+      <button class="filter-chip" onclick="filterHistory('high',this)">🟠 High</button>
+      <button class="filter-chip" onclick="filterHistory('medium',this)">🟡 Medium</button>
+      <button class="filter-chip" onclick="filterHistory('low',this)">🟢 Low</button>
+    </div>
+    <div class="hist-count" id="histCount"></div>
+    <div id="histList"></div>
+  </div>
+</div>
+
+<!-- ════════ BOTTOM NAV ════════ -->
+<nav class="bottom-nav">
+
+  <button class="bnav-btn" onclick="window.location.href='/home.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
+      <path d="M9 21V12h6v9"/>
+    </svg>
+    <span>Home</span>
+  </button>
+
+  <button class="bnav-btn bnav-report active" id="bnavReports">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 11l3 3L22 4"/>
+      <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+    </svg>
+    <span>Reports</span>
+  </button>
+
+  <button class="bnav-btn" onclick="window.location.href='/profile.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="8" r="4"/>
+      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+    </svg>
+    <span>Profile</span>
+  </button>
+
+</nav>
+
+<script>
+/* ── AUTH ── */
+function getProfile(){try{return JSON.parse(localStorage.getItem('tampines_profile')||'null');}catch(e){return null;}}
+(function guardAuth(){
+  const p=getProfile();
+  if(!p||!p.phone||!p.homeAddress){window.location.replace('/login.html');}
+})();
+
+/* ── TAB SWITCHING ── */
+function switchTab(tab){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  if(tab==='history'){
+    const pageEl=document.getElementById('pageHistory');
+    const tabEl=document.getElementById('tabHistory');
+    if(pageEl)pageEl.classList.add('active');
+    if(tabEl)tabEl.classList.add('active');
+    loadHistory();
+  } else {
+    const pageEl=document.getElementById('pageReport');
+    const tabEl=document.getElementById('tabReport');
+    if(pageEl)pageEl.classList.add('active');
+    if(tabEl)tabEl.classList.add('active');
+    if(typeof startGPS==='function') startGPS();
+  }
+}
+
+/* ══════════════════════════════════
+   HISTORY LOGIC
+══════════════════════════════════ */
+let allHistory=[];
+
+function loadHistory(){
+  const profile=getProfile();
+  const phone=profile?profile.phone:'guest';
+  try{allHistory=JSON.parse(localStorage.getItem('tampines_history_'+phone)||'[]');}
+  catch(e){allHistory=[];}
+  renderHistory();
+}
+
+function renderHistory(){
+  const list=document.getElementById('histList');
+  const countEl=document.getElementById('histCount');
+  let filtered=allHistory.slice().reverse();
+  countEl.textContent=filtered.length?`${filtered.length} report${filtered.length!==1?'s':''}`:'' ;
+  if(!filtered.length){
+    list.innerHTML=`
+      <div class="hist-empty">
+        <div class="hist-empty-icon">
+          <img src="/static/report-icon.png" alt="Report Icon" class="hist-empty-icon-img">
+        </div>
+        <div class="hist-empty-title">No reports yet</div>
+        <div class="hist-empty-sub">Your submitted reports will appear here.</div>
+      </div>`;
+    return;
+  }
+  list.innerHTML=filtered.map((r,i)=>{
+    const prio=(r.priority||'LOW').toLowerCase();
+    const pLabel=(r.priority||'LOW').toUpperCase();
+    const id='rcard_'+i;
+    const thumb=r.thumbnail?`<img src="${r.thumbnail}" alt="photo" loading="lazy"/>`:`<div class="rcard-thumb-empty">📷</div>`;
+    const locLine=r.location?`<div class="rcard-loc">📍 ${r.location}</div>`:'';
+    const detailAgency=r.agencies?`<div class="rcard-detail-row"><span class="rcard-detail-label">Agency</span><span class="rcard-detail-val">${r.agencies}</span></div>`:'';
+    const detailLoc=r.location?`<div class="rcard-detail-row"><span class="rcard-detail-label">Location</span><span class="rcard-detail-val">${r.location}</span></div>`:'';
+    const detailDate=r.date?`<div class="rcard-detail-row"><span class="rcard-detail-label">Submitted</span><span class="rcard-detail-val">${r.date}</span></div>`:'';
+    const detailTranscript=r.transcript?`<div class="rcard-transcript-text">"${r.transcript}"</div>`:'';
+    return `
+      <div class="rcard" data-caseid="${r.caseId||''}">
+        <div class="rcard-row">
+          <div class="rcard-thumb">
+            <div class="rcard-stripe ${prio}"></div>
+            ${thumb}
+          </div>
+          <div class="rcard-main">
+            <div class="rcard-meta">
+              <span class="rcard-prio ${prio}"><span class="prio-dot"></span>${pLabel}</span>
+              <span class="rcard-date">${r.date?r.date.split(',')[0]:''}</span>
+            </div>
+            <div class="rcard-caseid">${r.caseId||'—'}</div>
+            <div class="rcard-summary">${r.summary||'Report submitted'}</div>
+            ${locLine}
+            <button class="rcard-toggle" onclick="toggleDetail('${id}',this)">See more ▾</button>
+          </div>
+        </div>
+        <div class="rcard-detail" id="${id}">
+          ${detailAgency}${detailLoc}${detailDate}${detailTranscript}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function toggleDetail(id,btn){
+  const panel=document.getElementById(id);
+  const open=panel.classList.toggle('open');
+  btn.textContent=open?'See less ▴':'See more ▾';
+}
+
+let activeFilter='all';
+function filterHistory(filter, btn){
+  activeFilter=filter;
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  const list=document.getElementById('histList');
+  const countEl=document.getElementById('histCount');
+  let filtered=allHistory.slice().reverse();
+  if(filter!=='all') filtered=filtered.filter(r=>(r.priority||'low').toLowerCase()===filter);
+  countEl.textContent=filtered.length?`${filtered.length} report${filtered.length!==1?'s':''}`:'' ;
+  if(!filtered.length){
+    list.innerHTML=`<div class="hist-empty"><div class="hist-empty-icon">📭</div><div class="hist-empty-title">No reports</div><div class="hist-empty-sub">No ${filter==='all'?'':filter+' '}reports found.</div></div>`;
+    return;
+  }
+  list.innerHTML=filtered.map((r,i)=>{
+    const prio=(r.priority||'LOW').toLowerCase();
+    const pLabel=(r.priority||'LOW').toUpperCase();
+    const id='rcard_f'+i;
+    const thumb=r.thumbnail?`<img src="${r.thumbnail}" alt="photo" loading="lazy"/>`:`<div class="rcard-thumb-empty">📷</div>`;
+    const locLine=r.location?`<div class="rcard-loc">📍 ${r.location}</div>`:'';
+    const detailAgency=r.agencies?`<div class="rcard-detail-row"><span class="rcard-detail-label">Agency</span><span class="rcard-detail-val">${r.agencies}</span></div>`:'';
+    const detailLoc=r.location?`<div class="rcard-detail-row"><span class="rcard-detail-label">Location</span><span class="rcard-detail-val">${r.location}</span></div>`:'';
+    const detailDate=r.date?`<div class="rcard-detail-row"><span class="rcard-detail-label">Submitted</span><span class="rcard-detail-val">${r.date}</span></div>`:'';
+    const detailTranscript=r.transcript?`<div class="rcard-transcript-text">"${r.transcript}"</div>`:'';
+    return `<div class="rcard"><div class="rcard-row"><div class="rcard-thumb"><div class="rcard-stripe ${prio}"></div>${thumb}</div><div class="rcard-main"><div class="rcard-meta"><span class="rcard-prio ${prio}"><span class="prio-dot"></span>${pLabel}</span><span class="rcard-date">${r.date?r.date.split(',')[0]:''}</span></div><div class="rcard-caseid">${r.caseId||'—'}</div><div class="rcard-summary">${r.summary||'Report submitted'}</div>${locLine}<button class="rcard-toggle" onclick="toggleDetail('${id}',this)">See more ▾</button></div></div><div class="rcard-detail" id="${id}">${detailAgency}${detailLoc}${detailDate}${detailTranscript}</div></div>`;
+  }).join('');
+}
+
+function clearHistory(){
+  if(!confirm('Clear all your report history? This cannot be undone.'))return;
+  const profile=getProfile();
+  const phone=profile?profile.phone:'guest';
+  localStorage.removeItem('tampines_history_'+phone);
+  allHistory=[];
+  renderHistory();
+}
+
+/* ══════════════════════════════════
+   REPORT LOGIC — STATE
+══════════════════════════════════ */
+let selectedImages=[];
+let selectedAudio=null;
+let selectedVideo=null;
+let isRecording=false;
+let mediaRecorder=null;
+let audioChunks=[];
+let recInterval=null;
+let recSeconds=0;
+let cameraStream=null;
+let currentFacing='environment';
+let videoStream=null;
+let videoRecorder=null;
+let videoChunks=[];
+let videoRecInterval=null;
+let videoRecSeconds=0;
+let userLocation=null;
+let locationAddr='';
+let locationSource=null;
+let userProfile=null;
+let pendingFormData=null;
+
+const MAX_PHOTOS=10;
+const AGENCY_ICONS={
+  cleanliness:'🗑️',structural:'🔧',electrical:'⚡',
+  water:'💧',safety:'⚠️',noise:'🔊',
+  pest:'🐀',vehicles:'🚗',greenery:'🌿',general:'📋'
+};
+
+/* ── GPS ── */
+function startGPS(){
+  if(!navigator.geolocation){setGPS('','Location not available',false);return;}
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    if(locationSource!=='camera'){
+      userLocation={lat:pos.coords.latitude,lng:pos.coords.longitude};
+      locationSource='gps';
+      try{
+        const res=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${userLocation.lat}&lon=${userLocation.lng}&format=json`);
+        const data=await res.json();
+        const parts=(data.display_name||'').split(',');
+        locationAddr=parts.slice(0,3).join(',').trim();
+        setGPS('found','📍 '+locationAddr,true);
+      }catch{
+        locationAddr=`${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}`;
+        setGPS('found','📍 Location found',true);
+      }
+    }
+  },()=>setGPS('warn','Location unavailable — state your block when speaking',false),
+  {timeout:10000,enableHighAccuracy:true});
+}
+
+async function lockCameraLocation(){
+  return new Promise(resolve=>{
+    if(!navigator.geolocation){resolve();return;}
+    setGPS('searching','📍 Locking location…',false);
+    navigator.geolocation.getCurrentPosition(async pos=>{
+      userLocation={lat:pos.coords.latitude,lng:pos.coords.longitude};
+      locationSource='camera';
+      try{
+        const res=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${userLocation.lat}&lon=${userLocation.lng}&format=json`);
+        const data=await res.json();
+        const parts=(data.display_name||'').split(',');
+        locationAddr=parts.slice(0,3).join(',').trim();
+        setGPS('found','📍 '+locationAddr,true);
+      }catch{
+        locationAddr=`${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}`;
+        setGPS('found','📍 Location locked',true);
+      }
+      const strip=document.getElementById('uploadAddrStrip');
+      if(strip)strip.style.display='none';
+      resolve();
+    },()=>{setGPS('warn','GPS unavailable',false);resolve();},{timeout:8000,enableHighAccuracy:true});
+  });
+}
+
+function setGPS(cls,text,_found){
+  const dot=document.getElementById('gpsDot');
+  if(!dot)return;
+  dot.className='gps-dot'+(cls?' '+cls:'');
+  const textEl=document.getElementById('gpsText');
+  textEl.textContent=text;
+  textEl.className='gps-text'+(cls==='warn'?' warn':'');
+}
+
+/* ── IMAGE HANDLING ── */
+function showError(msg){
+  const box=document.getElementById('errorBox');
+  if(!box)return;
+  box.textContent='⚠️ '+msg;
+  box.style.cssText='display:block;background:#fff1f2;border:2px solid #fca5a5;border-radius:16px;padding:14px 18px;margin-top:12px;margin-bottom:12px;font-family:Nunito,sans-serif;font-size:14px;font-weight:800;color:#dc2626;text-align:center;';
+  box.style.animation='none';void box.offsetWidth;box.style.animation='errShake 0.3s ease';
+  clearTimeout(box._t);box._t=setTimeout(()=>{box.style.display='none';},6000);
+}
+
+function updatePhotoCounter(){
+  const count=selectedImages.filter(Boolean).length;
+  let counter=document.getElementById('photoCounter');
+  if(!counter){
+    counter=document.createElement('div');counter.id='photoCounter';
+    counter.style.cssText='font-family:Nunito,sans-serif;font-size:11px;font-weight:900;color:#64748b;text-align:right;padding:4px 2px 0;letter-spacing:0.5px;text-transform:uppercase;';
+    const gallery=document.getElementById('mediaGallery');
+    gallery.parentNode.insertBefore(counter,gallery);
+  }
+  if(count>0){
+    const atMax=count>=MAX_PHOTOS;
+    counter.style.color=atMax?'#dc2626':'#64748b';
+    counter.textContent=`📷 ${count} / ${MAX_PHOTOS} photos${atMax?' — limit reached':''}`;
+    counter.style.display='block';
+  }else{counter.style.display='none';}
+}
+
+function handleImageFile(input){
+  const files=Array.from(input.files);if(!files.length)return;
+  const current=selectedImages.filter(Boolean).length;
+  const canAdd=MAX_PHOTOS-current;
+  if(canAdd<=0){input.value='';return;}
+  const toAdd=files.slice(0,canAdd);
+  toAdd.forEach(f=>addImageToGallery(f));
+  document.getElementById('btnCamera').classList.add('done');
+  input.value='';
+}
+
+function handleUploadFile(input){
+  const files=Array.from(input.files);if(!files.length)return;
+  const vids=files.filter(f=>f.type.startsWith('video/'));
+  const imgs=files.filter(f=>!f.type.startsWith('video/'));
+  if(vids.length){
+    selectedVideo=vids[0];
+    const vid=document.getElementById('videoPreview');
+    vid.src=URL.createObjectURL(vids[0]);
+    document.getElementById('videoWrap').style.display='block';
+  }
+  const current=selectedImages.filter(Boolean).length;
+  const canAdd=MAX_PHOTOS-current;
+  if(imgs.length>0&&canAdd>0){
+    const toAdd=imgs.slice(0,canAdd);
+    toAdd.forEach(f=>addImageToGallery(f));
+  }
+  document.getElementById('btnUpload').classList.add('done');
+  document.getElementById('mediaGallery').classList.add('show');
+  document.getElementById('addMorePill').style.display='flex';
+  input.value='';
+  if(locationSource!=='camera'){
+    const strip=document.getElementById('uploadAddrStrip');
+    const addrInput=document.getElementById('uploadAddrInput');
+    strip.style.display='block';
+    if(!addrInput.value&&userProfile&&userProfile.homeAddress){
+      addrInput.value=userProfile.homeAddress;
+    }
+    locationSource='upload';
+  }
+}
+
+function addImageToGallery(file){
+  selectedImages.push(file);
+  const idx=selectedImages.length-1;
+  const url=URL.createObjectURL(file);
+  const wrap=document.createElement('div');wrap.className='thumb-item';wrap.id='thumb-'+idx;
+  const img=document.createElement('img');img.src=url;img.alt='photo';
+  const del=document.createElement('button');del.className='thumb-del';del.textContent='✕';
+  del.onclick=()=>removeImage(idx);
+  wrap.appendChild(img);wrap.appendChild(del);
+  document.getElementById('thumbScroll').appendChild(wrap);
+  document.getElementById('mediaGallery').classList.add('show');
+  const atMax=selectedImages.filter(Boolean).length>=MAX_PHOTOS;
+  document.getElementById('addMorePill').style.display=atMax?'none':'flex';
+  updatePhotoCounter();
+}
+
+function removeImage(idx){
+  selectedImages[idx]=null;
+  const el=document.getElementById('thumb-'+idx);if(el)el.remove();
+  const remaining=selectedImages.filter(Boolean);
+  updatePhotoCounter();
+  if(remaining.length<MAX_PHOTOS&&(remaining.length||selectedVideo)){
+    document.getElementById('addMorePill').style.display='flex';
+  }
+  if(!remaining.length&&!selectedVideo){
+    document.getElementById('mediaGallery').classList.remove('show');
+    document.getElementById('addMorePill').style.display='none';
+    document.getElementById('btnCamera').classList.remove('done');
+    document.getElementById('btnUpload').classList.remove('done');
+  }
+}
+
+function clearVideo(){
+  selectedVideo=null;
+  document.getElementById('videoWrap').style.display='none';
+  document.getElementById('videoPreview').src='';
+  const remaining=selectedImages.filter(Boolean);
+  if(!remaining.length){
+    document.getElementById('mediaGallery').classList.remove('show');
+    document.getElementById('addMorePill').style.display='none';
+    document.getElementById('btnUpload').classList.remove('done');
+  }
+}
+
+function clearAllMedia(){
+  selectedImages=[];selectedVideo=null;
+  document.getElementById('thumbScroll').innerHTML='';
+  document.getElementById('videoWrap').style.display='none';
+  document.getElementById('videoPreview').src='';
+  document.getElementById('mediaGallery').classList.remove('show');
+  document.getElementById('addMorePill').style.display='none';
+  document.getElementById('btnCamera').classList.remove('done');
+  document.getElementById('btnUpload').classList.remove('done');
+  const vb=document.getElementById('btnVideo');
+  if(vb)vb.classList.remove('done');
+  const vt=document.getElementById('videoTitle');
+  if(vt)vt.textContent='Take Video';
+}
+
+/* ── CAMERA ── */
+async function openCamera(){
+  currentFacing='environment';
+  try{
+    await startCameraStream();
+    document.getElementById('capturedImg').style.display='none';
+    document.getElementById('camControlsLive').style.display='flex';
+    document.getElementById('camControlsPreview').style.display='none';
+    document.getElementById('cameraModal').classList.add('show');
+  }catch(e){document.getElementById('imageInput').click();}
+}
+
+async function startCameraStream(){
+  if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null;}
+  cameraStream=await navigator.mediaDevices.getUserMedia({
+    video:{facingMode:currentFacing,width:{ideal:1920},height:{ideal:1080}},audio:false
+  });
+  const preview=document.getElementById('cameraPreview');
+  preview.srcObject=cameraStream;
+  preview.style.display='block';
+  preview.style.transform=currentFacing==='user'?'scaleX(-1)':'scaleX(1)';
+}
+
+async function flipCamera(){
+  currentFacing=currentFacing==='environment'?'user':'environment';
+  const btn=document.getElementById('camFlipBtn');
+  if(btn){btn.style.transform='rotate(180deg)';setTimeout(()=>btn.style.transform='',300);}
+  try{await startCameraStream();}catch(e){currentFacing=currentFacing==='environment'?'user':'environment';await startCameraStream();}
+}
+
+function capturePhoto(){
+  const v=document.getElementById('cameraPreview');
+  const c=document.getElementById('cameraCanvas');
+  c.width=v.videoWidth;c.height=v.videoHeight;
+  c.getContext('2d').drawImage(v,0,0);
+  const img=document.getElementById('capturedImg');
+  img.src=c.toDataURL('image/jpeg');
+  img.style.display='block';
+  v.style.display='none';
+  document.getElementById('camControlsLive').style.display='none';
+  document.getElementById('camControlsPreview').style.display='flex';
+}
+
+function retakePhoto(){
+  document.getElementById('cameraPreview').style.display='block';
+  document.getElementById('capturedImg').style.display='none';
+  document.getElementById('camControlsLive').style.display='flex';
+  document.getElementById('camControlsPreview').style.display='none';
+}
+
+async function useCapture(){
+  const c=document.getElementById('cameraCanvas');
+  closeCamera();
+  await lockCameraLocation();
+  c.toBlob(blob=>{
+    if(!blob)return;
+    const file=new File([blob],'camera_photo.jpg',{type:'image/jpeg'});
+    addImageToGallery(file);
+    document.getElementById('btnCamera').classList.add('done');
+  },'image/jpeg',0.85);
+}
+
+function closeCamera(){
+  if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null;}
+  document.getElementById('cameraModal').classList.remove('show');
+}
+
+/* ── VIDEO RECORDING ── */
+let videoFacing='environment';
+
+async function startVideoStream(){
+  if(videoStream){videoStream.getTracks().forEach(t=>t.stop());videoStream=null;}
+  videoStream=await navigator.mediaDevices.getUserMedia({
+    video:{facingMode:videoFacing,width:{ideal:1920},height:{ideal:1080}},audio:true
+  });
+  const preview=document.getElementById('videoRecordPreview');
+  preview.srcObject=videoStream;
+  preview.style.transform=videoFacing==='user'?'scaleX(-1)':'scaleX(1)';
+}
+
+async function openVideoModal(){
+  videoFacing='environment';
+  try{
+    await startVideoStream();
+    document.getElementById('videoRecordPreview').style.display='block';
+    document.getElementById('videoPlayback').style.display='none';
+    document.getElementById('videoRecTimer').style.display='none';
+    document.getElementById('vidControlsIdle').style.display='flex';
+    document.getElementById('vidControlsRecording').style.display='none';
+    document.getElementById('vidControlsPreview').style.display='none';
+    document.getElementById('videoModal').classList.add('show');
+  }catch(e){showError('Camera/microphone access denied for video.');}
+}
+
+async function flipVideoCamera(){
+  videoFacing=videoFacing==='environment'?'user':'environment';
+  const btn=document.getElementById('vidFlipBtn');
+  if(btn){btn.style.transform='rotate(180deg)';setTimeout(()=>btn.style.transform='',300);}
+  try{await startVideoStream();}catch(e){videoFacing=videoFacing==='environment'?'user':'environment';await startVideoStream();}
+}
+
+function startVideoRecord(){
+  videoChunks=[];videoRecSeconds=0;
+  videoRecorder=new MediaRecorder(videoStream);
+  videoRecorder.ondataavailable=e=>{if(e.data.size>0)videoChunks.push(e.data);};
+  videoRecorder.onstop=()=>{
+    const blob=new Blob(videoChunks,{type:'video/webm'});
+    const url=URL.createObjectURL(blob);
+    const pb=document.getElementById('videoPlayback');
+    pb.src=url;pb.style.display='block';
+    document.getElementById('videoRecordPreview').style.display='none';
+    document.getElementById('videoRecTimer').style.display='none';
+    document.getElementById('vidControlsRecording').style.display='none';
+    document.getElementById('vidControlsPreview').style.display='flex';
+    videoRecorder._blob=blob;
+  };
+  videoRecorder.start();
+  videoRecInterval=setInterval(()=>{
+    videoRecSeconds++;
+    const m=Math.floor(videoRecSeconds/60),s=videoRecSeconds%60;
+    const t=document.getElementById('videoRecTimer');
+    t.textContent='⏺ '+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+    t.style.display='block';
+  },1000);
+  document.getElementById('vidControlsIdle').style.display='none';
+  document.getElementById('vidControlsRecording').style.display='flex';
+}
+
+function stopVideoRecord(){
+  clearInterval(videoRecInterval);
+  if(videoRecorder&&videoRecorder.state!=='inactive')videoRecorder.stop();
+}
+
+function retakeVideo(){
+  document.getElementById('videoPlayback').style.display='none';
+  document.getElementById('videoRecordPreview').style.display='block';
+  document.getElementById('videoRecTimer').style.display='none';
+  document.getElementById('vidControlsPreview').style.display='none';
+  document.getElementById('vidControlsIdle').style.display='flex';
+  videoRecSeconds=0;
+  document.getElementById('videoRecordPreview').srcObject=videoStream;
+}
+
+function useVideo(){
+  const blob=videoRecorder&&videoRecorder._blob;
+  if(!blob){closeVideoModal();return;}
+  selectedVideo=new File([blob],'recorded_video.webm',{type:'video/webm'});
+  const url=URL.createObjectURL(blob);
+  const vid=document.getElementById('videoPreview');
+  vid.src=url;
+  document.getElementById('videoWrap').style.display='block';
+  document.getElementById('mediaGallery').classList.add('show');
+  document.getElementById('btnVideo').classList.add('done');
+  document.getElementById('videoTitle').textContent='Video Ready';
+  closeVideoModal();
+}
+
+function closeVideoModal(){
+  clearInterval(videoRecInterval);
+  if(videoRecorder&&videoRecorder.state!=='inactive')videoRecorder.stop();
+  if(videoStream){videoStream.getTracks().forEach(t=>t.stop());videoStream=null;}
+  document.getElementById('videoModal').classList.remove('show');
+}
+
+/* ── VOICE RECORDING ── */
+async function toggleRecording(){
+  if(isRecording){stopRecording();return;}
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    audioChunks=[];recSeconds=0;
+    mediaRecorder=new MediaRecorder(stream);
+    mediaRecorder.ondataavailable=e=>{if(e.data.size>0)audioChunks.push(e.data);};
+    mediaRecorder.onstop=()=>{
+      stream.getTracks().forEach(t=>t.stop());
+      const blob=new Blob(audioChunks,{type:'audio/webm'});
+      selectedAudio=new File([blob],'voice.webm',{type:'audio/webm'});
+      const url=URL.createObjectURL(blob);
+      document.getElementById('voicePlayer').src=url;
+      const mins=Math.floor(recSeconds/60),secs=recSeconds%60;
+      document.getElementById('voiceDuration').textContent=
+        `Voice recorded (${mins}:${String(secs).padStart(2,'0')})`;
+      document.getElementById('voicePreview').classList.add('show');
+    };
+    mediaRecorder.start();
+    isRecording=true;
+    recInterval=setInterval(()=>{
+      recSeconds++;
+      const m=Math.floor(recSeconds/60),s=recSeconds%60;
+      document.getElementById('speakTimer').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+    },1000);
+    document.getElementById('speakBtn').classList.add('recording');
+    document.getElementById('speakBtn').classList.remove('done');
+    document.getElementById('speakRing').innerHTML='<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1a2f6e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>';
+    document.getElementById('speakTitle').textContent='Recording…';
+    document.getElementById('speakSub2').textContent='Tap to stop';
+    document.getElementById('waveform').classList.add('show');
+    document.getElementById('speakTimer').style.display='block';
+    document.getElementById('speakTimer').textContent='00:00';
+  }catch(e){showError('Microphone access denied.');}
+}
+
+function stopRecording(){
+  if(mediaRecorder&&mediaRecorder.state!=='inactive')mediaRecorder.stop();
+  clearInterval(recInterval);
+  isRecording=false;
+  document.getElementById('speakBtn').classList.remove('recording');
+  document.getElementById('speakBtn').classList.add('done');
+  document.getElementById('speakRing').innerHTML='<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1a2f6e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  document.getElementById('speakTitle').textContent='Recorded ✓';
+  document.getElementById('speakSub2').textContent='Tap to redo';
+  document.getElementById('waveform').classList.remove('show');
+  document.getElementById('speakTimer').style.display='none';
+}
+
+function clearVoiceRecording(){
+  selectedAudio=null;
+  if(isRecording)stopRecording();
+  document.getElementById('voicePreview').classList.remove('show');
+  document.getElementById('voicePlayer').src='';
+  document.getElementById('speakBtn').classList.remove('done','recording');
+  document.getElementById('speakRing').innerHTML='<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1a2f6e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
+  document.getElementById('speakTitle').textContent='Speak';
+  document.getElementById('speakSub2').textContent='Describe the problem';
+  document.getElementById('speakTimer').style.display='none';
+  document.getElementById('waveform').classList.remove('show');
+}
+
+/* ── FIXED SEND REPORT: redirect to confirm.html (same as home page) ── */
+function fileToDataURI(file){
+  return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=e=>resolve(e.target.result);r.onerror=reject;r.readAsDataURL(file);});
+}
+function blobToBase64(blob){
+  return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=e=>resolve(e.target.result.split(',')[1]);r.onerror=reject;r.readAsDataURL(blob);});
+}
+function setLoadingStep(n){for(let i=1;i<=4;i++){const el=document.getElementById('ls'+i);if(el)el.className='ls'+(i<=n?' active':'');}}
+
+async function sendReport(){
+  const images=selectedImages.filter(Boolean);
+  if(!images.length&&!selectedVideo&&!selectedAudio){
+    showError('Please add a photo or voice recording first.');
+    return;
+  }
+  document.getElementById('errorBox').style.display='none';
+
+  const profile=userProfile||getProfile();
+  let location='';
+  if(locationSource==='upload'){
+    const addrInput=document.getElementById('uploadAddrInput');
+    location=(addrInput&&addrInput.value.trim())||(profile&&profile.homeAddress)||'';
+  }else if(locationAddr){
+    location=locationAddr;
+  }else if(userLocation){
+    location=`${userLocation.lat.toFixed(5)}, ${userLocation.lng.toFixed(5)}`;
+  }
+
+  const sendBtn=document.getElementById('sendBtn');
+  if(sendBtn){sendBtn.disabled=true;sendBtn.textContent='⏳ Preparing…';}
+
+  let thumbnails=[];
+  try{thumbnails=await Promise.all(images.map(file=>fileToDataURI(file)));}catch(e){thumbnails=[];}
+
+  // Audio serialization
+  if(selectedAudio){
+    try{const audioB64=await blobToBase64(selectedAudio);sessionStorage.setItem('tampines_pending_audio',audioB64);}
+    catch(e){sessionStorage.removeItem('tampines_pending_audio');}
+  }else{sessionStorage.removeItem('tampines_pending_audio');}
+
+  // Video serialization — crucial for video reports
+  if(selectedVideo){
+    try{
+      const reader=new FileReader();
+      const videoB64=await new Promise((res,rej)=>{
+        reader.onload=e=>res(e.target.result);
+        reader.onerror=rej;
+        reader.readAsDataURL(selectedVideo);
+      });
+      sessionStorage.setItem('tampines_pending_video',videoB64);
+      sessionStorage.setItem('tampines_pending_video_type',selectedVideo.type||'video/webm');
+    }catch(e){
+      sessionStorage.removeItem('tampines_pending_video');
+      sessionStorage.removeItem('tampines_pending_video_type');
+    }
+  }else{
+    sessionStorage.removeItem('tampines_pending_video');
+    sessionStorage.removeItem('tampines_pending_video_type');
+  }
+
+  const pendingReport={thumbnails,location,locationSource,hasAudio:!!selectedAudio,hasVideo:!!selectedVideo,imageCount:images.length};
+  sessionStorage.setItem('tampines_pending_report',JSON.stringify(pendingReport));
+
+  // Redirect to confirmation page (same as home page flow)
+  window.location.href = '/confirm.html';
+}
+
+async function submitClarification(skip=false){
+  document.getElementById('clarifModal').classList.remove('show');
+  const answer=skip?'':(document.getElementById('clarifAnswer').value.trim());
+  if(pendingFormData&&answer)pendingFormData.append('extra_context',answer);
+  document.getElementById('loadingScreen').classList.add('show');
+  setLoadingStep(3);
+  try{
+    const res=await fetch('/analyze',{method:'POST',body:pendingFormData});
+    const data=await res.json();
+    if(data.error)throw new Error(data.error);
+    showSuccess(data);
+  }catch(err){
+    document.getElementById('loadingScreen').classList.remove('show');
+    showError(err.message);
+  }
+}
+
+/* ── SUCCESS ── */
+function showSuccess(data){
+  const analysis=data.analysis||{};
+  const routes=data.routes||[];
+  const priority=(analysis.priority||'LOW').toUpperCase();
+
+  const header=document.getElementById('successHeader');
+  const icon=document.getElementById('successIcon');
+  const headline=document.getElementById('successHeadline');
+  if(priority==='CRITICAL'){
+    header.style.background='#dc2626';icon.textContent='🚨';headline.textContent='CRITICAL — Call 995 Now!';
+  }else if(priority==='HIGH'){
+    header.style.background='#c2410c';icon.textContent='⚠️';headline.textContent='High Priority — Agencies Notified!';
+  }else{
+    header.style.background='linear-gradient(135deg,#059669 0%,#10b981 100%)';
+    icon.textContent='✅';headline.textContent='Report Sent!';
+  }
+
+  document.getElementById('successTime').textContent='Submitted '+new Date().toLocaleString('en-SG');
+  document.getElementById('residentMsg').textContent=analysis.resident_message||'Your report has been received. We will attend to it shortly.';
+
+  const chip=document.getElementById('priorityVal');
+  chip.textContent=priority;chip.className='priority-chip '+priority.toLowerCase();
+
+  const safetyCard=document.getElementById('safetyCard');
+  const safetySteps=document.getElementById('safetySteps');
+  const safetyTitle=document.getElementById('safetyCardTitle');
+  safetySteps.innerHTML='';
+  if(priority==='CRITICAL'||priority==='HIGH'){
+    safetyCard.classList.add('show');
+    if(priority==='CRITICAL'){
+      safetyCard.classList.add('critical-card');
+      safetyTitle.textContent='🚨 CALL 995 IMMEDIATELY — Then:';
+      ['Evacuate the area immediately','Do not re-enter','Await SCDF instructions'].forEach(s=>{
+        const d=document.createElement('div');d.className='safety-step';d.textContent='• '+s;safetySteps.appendChild(d);
+      });
+    }else{
+      safetyCard.classList.remove('critical-card');
+      safetyTitle.textContent='👉 What to Do Now';
+      ['Do not touch exposed wires or wet switches','Keep children away from the area',
+       'If flooding, move valuables higher','If sparks appear, call 995 immediately'].forEach(s=>{
+        const d=document.createElement('div');d.className='safety-step';d.textContent='• '+s;safetySteps.appendChild(d);
+      });
+    }
+  }else{safetyCard.classList.remove('show');}
+
+  const agencyList=document.getElementById('agencyList');
+  agencyList.innerHTML='';
+  if(routes.length>0){
+    routes.forEach(route=>{
+      const cat=route.category||'general';
+      const labelsStr=(route.labels_covered||[]).map(l=>l.replace(/_/g,' ')).join(', ');
+      const row=document.createElement('div');row.className='agency-row';
+      row.innerHTML=`
+        <div class="agency-icon-box ${cat}">${AGENCY_ICONS[cat]||'📋'}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="agency-name">${route.agency}</div>
+          <div class="agency-labels">${labelsStr}</div>
+          <div class="agency-sla">⏱ Response within ${route.sla}</div>
+        </div>
+        <div class="agency-check">✅</div>`;
+      agencyList.appendChild(row);
+    });
+  }else{
+    agencyList.innerHTML='<div class="agency-row"><div class="agency-name">Town Council</div></div>';
+  }
+
+  document.getElementById('caseIdVal').textContent=data.case_id||'—';
+  const locCard=document.getElementById('locationCard');
+  const locVal=document.getElementById('locationVal');
+  locCard.style.display='block';
+  if(data.location){locVal.textContent='📍 '+data.location;}
+  else{locVal.textContent='⚠️ Location not detected — state your block when speaking.';locVal.style.color='#dc2626';}
+  const txCard=document.getElementById('transcriptCard');
+  const txVal=document.getElementById('transcriptVal');
+  txCard.style.display='block';
+  txVal.textContent=data.transcript?'"'+data.transcript+'"':'No voice recorded.';
+  if(!data.transcript)txVal.style.color='#64748b';
+  const waCard=document.getElementById('whatsappCard');
+  const waVal=document.getElementById('whatsappVal');
+  const profile=getProfile();
+  if(profile&&profile.phone){
+    waCard.style.display='block';
+    const waOk=data.dispatch&&data.dispatch.whatsapp_sent;
+    if(waOk){waVal.textContent='✅ WhatsApp confirmation sent to '+profile.phone;}
+    else if(!data.dispatch){waVal.textContent='⚠️ WhatsApp not sent.';}
+    else{waVal.textContent='❌ WhatsApp delivery failed for '+profile.phone+'.';}
+  }else{waCard.style.display='none';}
+
+  document.getElementById('loadingScreen').classList.remove('show');
+  document.getElementById('successScreen').classList.add('show');
+  const sendBtn=document.getElementById('sendBtn');
+  if(sendBtn){sendBtn.disabled=false;sendBtn.textContent='Review & Send →';}
+
+  // Flag home.html to sync immediately when user navigates back
+  sessionStorage.setItem('tampines_new_report', '1');
+}
+
+function resetAndReport(){
+  selectedImages=[];selectedAudio=null;selectedVideo=null;
+  pendingFormData=null;locationSource=null;isRecording=false;
+  document.getElementById('uploadAddrStrip').style.display='none';
+  document.getElementById('uploadAddrInput').value='';
+  document.getElementById('thumbScroll').innerHTML='';
+  document.getElementById('videoWrap').style.display='none';
+  document.getElementById('videoPreview').src='';
+  document.getElementById('mediaGallery').classList.remove('show');
+  document.getElementById('addMorePill').style.display='none';
+  document.getElementById('btnCamera').classList.remove('done');
+  document.getElementById('btnUpload').classList.remove('done');
+  const vb=document.getElementById('btnVideo');if(vb)vb.classList.remove('done');
+  const vt=document.getElementById('videoTitle');if(vt)vt.textContent='Take Video';
+  document.getElementById('waveform').classList.remove('show');
+  document.getElementById('speakTimer').style.display='none';
+  document.getElementById('voicePreview').classList.remove('show');
+  document.getElementById('voicePlayer').src='';
+  document.getElementById('speakBtn').classList.remove('done','recording');
+  document.getElementById('speakTitle').textContent='Speak';
+  document.getElementById('speakSub2').textContent='Describe the problem';
+  document.getElementById('speakRing').innerHTML='<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1a2f6e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
+  document.getElementById('successScreen').classList.remove('show');
+  switchTab('report');
+  startGPS();
+}
+
+/* ── INIT ── */
+document.addEventListener('DOMContentLoaded',()=>{
+  userProfile=getProfile();
+  const params = new URLSearchParams(window.location.search);
+  const tabParam  = params.get('tab');
+  const caseParam = params.get('case');
+
+  if (tabParam === 'history') {
+    switchTab('history');
+    // After history renders, scroll to and highlight the target case
+    if (caseParam) {
+      // loadHistory is synchronous, so cards are in DOM after switchTab
+      setTimeout(() => {
+        const target = document.querySelector(`.rcard[data-caseid="${CSS.escape(caseParam)}"]`);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Auto-expand the detail panel
+          const btn = target.querySelector('.rcard-toggle');
+          const panel = target.querySelector('.rcard-detail');
+          if (btn && panel && !panel.classList.contains('open')) {
+            panel.classList.add('open');
+            btn.textContent = 'See less ▴';
+          }
+          // Brief highlight flash
+          target.style.transition = 'box-shadow 0.3s';
+          target.style.boxShadow = '0 0 0 3px rgba(26,47,110,0.35)';
+          setTimeout(() => { target.style.boxShadow = ''; }, 1800);
+        }
+      }, 120);
+    }
+  } else {
+    startGPS();
+    switchTab('report');
+  }
+});
+
+// if('serviceWorker' in navigator){
+//   navigator.serviceWorker.register('/static/sw.js').catch(()=>{});
+// }
+
+/* ── Status-change poller & toast ── */
+function showStatusToast(icon, title, sub) {
+  // Reuse existing toast if any, else create one
+  let toast = document.getElementById('statusToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'statusToast';
+    toast.style.cssText = [
+      'position:fixed','bottom:90px','left:50%','transform:translateX(-50%) translateY(20px)',
+      'background:#1a2f6e','color:#fff','border-radius:16px',
+      'padding:13px 18px','display:flex','align-items:center','gap:11px',
+      'box-shadow:0 8px 32px rgba(15,31,92,0.28)','z-index:9999',
+      'max-width:340px','width:calc(100% - 40px)',
+      'opacity:0','transition:opacity 0.3s, transform 0.3s',
+      'font-family:Nunito,sans-serif'
+    ].join(';');
+    document.body.appendChild(toast);
+  }
+  toast.innerHTML = `
+    <span style="font-size:22px;flex-shrink:0">${icon}</span>
+    <div>
+      <div style="font-size:14px;font-weight:900;line-height:1.2">${title}</div>
+      <div style="font-size:12px;font-weight:600;opacity:0.72;margin-top:2px">${sub}</div>
+    </div>`;
+  // Animate in
+  requestAnimationFrame(() => {
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateX(-50%) translateY(0)';
+  });
+  // Auto-dismiss after 4s
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(-50%) translateY(20px)';
+  }, 4000);
+}
+
+async function pollStatusChanges() {
+  const profile = getProfile();
+  const phone   = profile ? profile.phone : null;
+  if (!phone) return;
+
+  try {
+    const res  = await fetch('/cases');
+    if (!res.ok) return;
+    const data = await res.json();
+    const mine = (data.cases || []).filter(c => (c.resident_phone || '') === phone);
+
+    const historyKey  = 'tampines_history_' + phone;
+    const existingRaw = localStorage.getItem(historyKey);
+    const existingList = existingRaw ? JSON.parse(existingRaw) : [];
+
+    const oldStatusMap = {};
+    existingList.forEach(e => { if (e.caseId) oldStatusMap[e.caseId] = (e.status || 'open').toLowerCase().replace(/\s+/g,''); });
+
+    const thumbMap = {};
+    existingList.forEach(e => { if (e.caseId && e.thumbnail) thumbMap[e.caseId] = e.thumbnail; });
+
+    let changed = false;
+    const converted = mine.map(c => {
+      const newStatus = (c.status || 'open').toLowerCase().replace(/\s+/g,'');
+      const oldStatus = oldStatusMap[c.case_id] || '';
+
+      if (oldStatus && newStatus !== oldStatus) {
+        changed = true;
+        const shortId  = c.case_id ? c.case_id.slice(-4) : '';
+        const locLabel = (c.location || c.case_id || 'your report').split(' ').slice(0,3).join(' ');
+
+        if (newStatus === 'inprogress' || newStatus === 'in-progress') {
+          showStatusToast('🔧', `Case ${shortId} is now In Progress`, `${locLabel} — Agency has picked up your report.`);
+        } else if (newStatus === 'resolved') {
+          showStatusToast('✅', `Case ${shortId} has been Resolved`, `${locLabel} — Issue has been closed.`);
+        } else if (newStatus === 'closed') {
+          showStatusToast('📁', `Case ${shortId} has been Closed`, `${locLabel} — Case is now closed.`);
+        }
+      }
+
+      return {
+        caseId:    c.case_id,
+        date:      c.timestamp || '',
+        summary:   c.case_summary || 'Report submitted',
+        priority:  c.priority || 'LOW',
+        location:  c.location || '',
+        agencies:  c.agencies || '',
+        transcript:c.transcript || '',
+        status:    c.status || 'Open',
+        thumbnail: thumbMap[c.case_id] || null,
+      };
+    });
+
+    localStorage.setItem(historyKey, JSON.stringify(converted));
+
+    // Refresh the history list if it's currently visible
+    if (changed) {
+      const histPage = document.getElementById('pageHistory');
+      if (histPage && histPage.classList.contains('active')) loadHistory();
+    }
+  } catch(e) {}
+}
+
+// Start polling every 30s once page is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => pollStatusChanges(), 3000);   // first check after 3s
+  setInterval(() => pollStatusChanges(), 15000); // then every 30s
+});
+</script>
+</body>
+</html>

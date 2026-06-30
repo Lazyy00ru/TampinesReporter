@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Tampines Estate Reporter</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:     #0a0f2e;
+  --accent:  #f59e0b;
+  --ok:      #10b981;
+  --text:    #f1f5ff;
+  --muted:   rgba(241,245,255,0.45);
+  --border:  rgba(255,255,255,0.13);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{
+  font-family:'DM Sans',sans-serif;min-height:100dvh;max-width:480px;
+  margin:0 auto;background:var(--ink);color:var(--text);
+  display:flex;flex-direction:column;overflow-x:hidden;
+}
+
+/* ── Animated background ── */
+.bg-canvas{position:fixed;inset:0;max-width:480px;margin:0 auto;z-index:0;overflow:hidden;pointer-events:none;}
+.bg-canvas::before{
+  content:'';position:absolute;top:-120px;left:-80px;width:420px;height:420px;border-radius:50%;
+  background:radial-gradient(circle,rgba(45,77,184,0.45) 0%,transparent 70%);
+  animation:drift1 9s ease-in-out infinite alternate;
+}
+.bg-canvas::after{
+  content:'';position:absolute;bottom:-80px;right:-60px;width:360px;height:360px;border-radius:50%;
+  background:radial-gradient(circle,rgba(245,158,11,0.18) 0%,transparent 65%);
+  animation:drift2 11s ease-in-out infinite alternate;
+}
+.bg-spot{
+  position:absolute;top:42%;left:60%;width:200px;height:200px;border-radius:50%;
+  background:radial-gradient(circle,rgba(16,185,129,0.12) 0%,transparent 70%);
+  animation:drift3 14s ease-in-out infinite alternate;
+}
+.bg-grid{
+  position:absolute;inset:0;
+  background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);
+  background-size:32px 32px;
+}
+@keyframes drift1{0%{transform:translate(0,0) scale(1)}100%{transform:translate(30px,40px) scale(1.08)}}
+@keyframes drift2{0%{transform:translate(0,0) scale(1)}100%{transform:translate(-24px,-30px) scale(1.05)}}
+@keyframes drift3{0%{transform:translate(0,0)}100%{transform:translate(-20px,20px)}}
+@keyframes pulse{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:1;transform:scale(1.35)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Page ── */
+.page{
+  position:relative;z-index:1;flex:1;
+  display:flex;flex-direction:column;
+  padding:0 22px 40px;min-height:100dvh;
+}
+
+/* ── Brand ── */
+.brand-bar{display:flex;align-items:center;gap:12px;padding:28px 0 0;}
+.brand-icon{
+  width:46px;height:46px;border-radius:14px;
+  background:linear-gradient(135deg,var(--accent) 0%,#f97316 100%);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  box-shadow:0 4px 20px rgba(245,158,11,0.35);
+}
+.brand-icon svg{width:26px;height:26px;}
+.brand-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--text);letter-spacing:-0.3px;line-height:1;}
+.brand-sub{font-size:10px;font-weight:500;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:3px;}
+
+/* ── Hero ── */
+.hero{margin-top:44px;margin-bottom:40px;animation:fadeUp 0.5s ease both;}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:7px;
+  background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.25);
+  border-radius:40px;padding:5px 13px;font-size:11px;font-weight:600;
+  color:#fcd34d;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:18px;
+}
+.hero-eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--ok);animation:pulse 2s ease-in-out infinite;}
+.hero-title{
+  font-family:'Syne',sans-serif;font-size:36px;font-weight:800;
+  color:var(--text);line-height:1.1;letter-spacing:-1px;margin-bottom:14px;
+}
+.hero-title em{font-style:normal;color:var(--accent);}
+.hero-desc{font-size:14px;line-height:1.7;color:var(--muted);max-width:310px;}
+
+/* ── Portal cards ── */
+.portal-cards{display:flex;flex-direction:column;gap:14px;animation:fadeUp 0.55s 0.1s ease both;}
+
+.pcard{
+  border-radius:22px;border:1.5px solid var(--border);
+  padding:24px 22px;cursor:pointer;
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  transition:transform 0.18s,border-color 0.18s,box-shadow 0.18s;
+  position:relative;overflow:hidden;
+  display:flex;align-items:center;gap:18px;
+  text-decoration:none;
+}
+.pcard:active{transform:scale(0.975);}
+
+/* Resident card */
+.pcard.resident{
+  background:rgba(245,158,11,0.08);
+  border-color:rgba(245,158,11,0.25);
+}
+.pcard.resident:hover{
+  border-color:rgba(245,158,11,0.55);
+  box-shadow:0 8px 32px rgba(245,158,11,0.18);
+  transform:translateY(-2px);
+}
+
+/* Agency card */
+.pcard.agency{
+  background:rgba(45,77,184,0.10);
+  border-color:rgba(45,77,184,0.28);
+}
+.pcard.agency:hover{
+  border-color:rgba(45,77,184,0.55);
+  box-shadow:0 8px 32px rgba(45,77,184,0.2);
+  transform:translateY(-2px);
+}
+
+/* Icon circle */
+.pcard-icon{
+  width:54px;height:54px;border-radius:16px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;font-size:26px;
+}
+.pcard.resident .pcard-icon{background:rgba(245,158,11,0.15);}
+.pcard.agency   .pcard-icon{background:rgba(45,77,184,0.18);}
+
+.pcard-body{flex:1;min-width:0;}
+.pcard-title{
+  font-family:'Syne',sans-serif;font-size:19px;font-weight:800;
+  color:var(--text);letter-spacing:-0.4px;line-height:1.1;margin-bottom:5px;
+}
+.pcard-sub{font-size:13px;color:var(--muted);font-weight:400;line-height:1.5;}
+
+.pcard-arrow{
+  width:34px;height:34px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.pcard.resident .pcard-arrow{background:rgba(245,158,11,0.18);}
+.pcard.agency   .pcard-arrow{background:rgba(45,77,184,0.2);}
+.pcard-arrow svg{width:16px;height:16px;color:var(--text);}
+
+/* Glow streak inside card */
+.pcard::before{
+  content:'';position:absolute;top:-40px;right:-40px;
+  width:120px;height:120px;border-radius:50%;
+  pointer-events:none;
+}
+.pcard.resident::before{background:radial-gradient(circle,rgba(245,158,11,0.12) 0%,transparent 70%);}
+.pcard.agency::before{background:radial-gradient(circle,rgba(45,77,184,0.14) 0%,transparent 70%);}
+
+/* ── Divider ── */
+.or-divider{
+  display:flex;align-items:center;gap:12px;
+  font-size:11px;font-weight:600;color:rgba(241,245,255,0.2);
+  letter-spacing:1px;text-transform:uppercase;
+}
+.or-divider::before,.or-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.08);}
+
+/* ── Footer ── */
+.footer{
+  margin-top:auto;padding-top:32px;
+  text-align:center;font-size:11px;color:rgba(241,245,255,0.2);
+  font-weight:500;animation:fadeUp 0.6s 0.2s ease both;
+}
+</style>
+</head>
+<body>
+
+<div class="bg-canvas">
+  <div class="bg-grid"></div>
+  <div class="bg-spot"></div>
+</div>
+
+<div class="page">
+
+  <!-- Brand -->
+  <div class="brand-bar">
+    <div class="brand-icon">
+      <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M13 2L23 10v12a1 1 0 01-1 1H4a1 1 0 01-1-1V10L13 2z" fill="#0a0f2e" opacity=".25"/>
+        <path d="M13 2L23 10v12a1 1 0 01-1 1H4a1 1 0 01-1-1V10L13 2z" stroke="#0a0f2e" stroke-width="2" stroke-linejoin="round" fill="none"/>
+        <rect x="9" y="15" width="8" height="8" rx="1" fill="#0a0f2e"/>
+        <rect x="9.5" y="9.5" width="3" height="3" rx=".5" fill="#0a0f2e" opacity=".6"/>
+        <rect x="13.5" y="9.5" width="3" height="3" rx=".5" fill="#0a0f2e" opacity=".6"/>
+      </svg>
+    </div>
+    <div>
+      <div class="brand-name">Estate Reporter</div>
+      <div class="brand-sub">Tampines · Singapore</div>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-eyebrow">
+      <span class="dot"></span>
+      AI-Powered Reporting
+    </div>
+    <div class="hero-title">Who are<br>you <em>today?</em></div>
+    <div class="hero-desc">Select your role to continue. Residents report issues; agencies manage and resolve them.</div>
+  </div>
+
+  <!-- Portal selector -->
+  <div class="portal-cards">
+
+    <a class="pcard resident" href="/login.html">
+      <div class="pcard-icon">🏠</div>
+      <div class="pcard-body">
+        <div class="pcard-title">I'm a Resident</div>
+        <div class="pcard-sub">Report an estate issue via voice or photo</div>
+      </div>
+      <div class="pcard-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </div>
+    </a>
+
+    <div class="or-divider">or</div>
+
+    <a class="pcard agency" href="/agency_login.html">
+      <div class="pcard-icon">🏢</div>
+      <div class="pcard-body">
+        <div class="pcard-title">I'm an Agency</div>
+        <div class="pcard-sub">Sign in to manage and resolve assigned cases</div>
+      </div>
+      <div class="pcard-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </div>
+    </a>
+
+  </div>
+
+  <div class="footer">Tampines Estate Reporter · Powered by AI · Singapore</div>
+
+</div>
+
+<script>
+// If resident is already logged in, skip straight to home
+(function() {
+  try {
+    const p = JSON.parse(localStorage.getItem('tampines_profile') || 'null');
+    if (p && p.phone && p.homeAddress) { window.location.replace('/home.html'); return; }
+  } catch(e) {}
+
+  // If agency is already logged in, skip straight to dashboard
+  try {
+    const s = JSON.parse(sessionStorage.getItem('agency_session') || 'null');
+    if (s && s.agency) { window.location.replace('/agency_dashboard.html'); return; }
+  } catch(e) {}
+})();
+</script>
+</body>
+</html>

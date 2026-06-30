@@ -1,0 +1,209 @@
+/* ═══════════════════════════════════════════
+   AGENCY BRAND OVERRIDES
+   Only loaded by agency_*.html templates.
+   Does NOT affect resident-side pages.
+   ═══════════════════════════════════════════ */
+
+/* ── Header logo only ── */
+#b-hdr-icon {
+  font-size: 0 !important;
+  background: url('/static/agent_icon-192.png') center / cover no-repeat !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 12px !important;
+}
+
+/* ══════════════════════════════════════════
+   QUICK ACTIONS — redesigned
+   ══════════════════════════════════════════ */
+
+.qa-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6B7A8F;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-top: 24px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.qa-title::before {
+  content: '';
+  display: block;
+  width: 3px;
+  height: 14px;
+  background: #0D9488;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.qa-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.qa-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 16px;
+  background: #FFFFFF;
+  border: 1px solid #EEF2F8;
+  border-radius: 14px;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s, transform 0.12s;
+  cursor: pointer;
+}
+
+.qa-item:hover {
+  background: #F8FAFD;
+  border-color: #D8E2F0;
+  transform: translateX(3px);
+}
+
+.qa-item:active {
+  transform: translateX(1px);
+  opacity: 0.85;
+}
+
+.qa-icon-pill {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.qa-icon-pill.teal {
+  background: #CCFBF1;
+}
+
+.qa-icon-pill.teal svg {
+  stroke: #0D9488;
+}
+
+.qa-icon-pill.blue {
+  background: #DBEAFE;
+}
+
+.qa-icon-pill.blue svg {
+  stroke: #2563EB;
+}
+
+.qa-icon-pill.violet {
+  background: #EDE9FE;
+}
+
+.qa-icon-pill.violet svg {
+  stroke: #7C3AED;
+}
+
+.qa-icon-pill.green {
+  background: #DCFCE7;
+}
+
+.qa-icon-pill.green svg {
+  stroke: #16A34A;
+}
+
+.qa-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.qa-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0B1A33;
+  line-height: 1.2;
+}
+
+.qa-hint {
+  font-size: 11px;
+  font-weight: 500;
+  color: #8E9BB0;
+  margin-top: 2px;
+}
+
+.qa-arrow {
+  color: #BCC8D8;
+  flex-shrink: 0;
+}
+
+/* ── Auto-assigned label ── */
+.auto-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #6B7A8F;
+  background: #F1F4F8;
+  border: 1px solid #DCE3EC;
+  border-radius: 20px;
+  padding: 3px 10px;
+  letter-spacing: 0.2px;
+}
+
+/* ── Hide old AI badge if it still appears anywhere ── */
+.ai-badge {
+  display: none !important;
+}
+
+/* ── Login page brand icon ── */
+.brand-icon {
+  background: url('/static/agent_icon-192.png') center / cover no-repeat !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.brand-icon svg {
+  display: none !important;
+}
+
+/* ══════════════════════════════════════════
+   LOGIN PAGE — aqua accent overrides
+   ══════════════════════════════════════════ */
+
+.cta-btn {
+  background: #0f8486 !important;
+  box-shadow: 0 4px 24px rgba(15,132,134,0.4) !important;
+}
+
+.hero-eyebrow {
+  border-color: rgba(92,231,236,0.45) !important;
+  background: rgba(92,231,236,0.08) !important;
+  color: #5ce7ec !important;
+}
+
+.hero-eyebrow .dot {
+  background: #5ce7ec !important;
+}
+
+.badge-required {
+  color: #ffffff !important;
+  background: rgba(15,132,134,0.18) !important;
+  border-color: rgba(15,132,134,0.35) !important;
+}
+
+.trust-item svg {
+  color: #5ce7ec !important;
+}
+
+.resident-link a {
+  color: #5fdec4 !important;
+  border-bottom-color: rgba(95,222,196,0.35) !important;
+}
+
+.resident-link a:hover {
+  color: #5ce7ec !important;
+}
+
+.input-wrap:focus-within {
+  border-color: #5ce7ec !important;
+}

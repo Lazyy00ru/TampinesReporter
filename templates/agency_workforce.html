@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Workforce — Tampines Estate Reporter</title>
+
+<script src="../static/base.js"
+        data-page="workforce"
+        data-title="<span>Workforce</span> Panel"
+        data-sub="Handyman Roster · All Agencies">
+</script>
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=SF+Pro+Text:ital,wght@0,400;0,500;0,600;0,700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg:          #f4f7fb;
+  --surface:     #ffffff;
+  --surface2:    #f8fafc;
+  --surface3:    #eef4fb;
+
+  --border:      #e2e8f0;
+  --border2:     #cbd5e1;
+
+  --text:        #0f172a;
+  --muted:       #475569;
+  --muted2:      #94a3b8;
+
+  --accent:      #38bdf8;
+  --accent-bg:   rgba(56,189,248,0.12);
+
+  --green:       #22c55e;
+  --green-bg:    rgba(34,197,94,0.12);
+
+  --amber:       #f59e0b;
+  --amber-bg:    rgba(245,158,11,0.12);
+
+  --red:         #ef4444;
+  --red-bg:      rgba(239,68,68,0.12);
+
+  --radius:      16px;
+  --radius-sm:   12px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg);
+  font-family: 'Inter', 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 80px;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 260px;
+  background:
+    radial-gradient(circle at top left, rgba(56,189,248,0.12), transparent 40%),
+    radial-gradient(circle at top right, rgba(59,130,246,0.10), transparent 40%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app-container {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 28px 28px 0 28px;
+  position: relative;
+  z-index: 2;
+}
+
+.dashboard-header { display: none; }
+.kpi-grid { display: none; }
+
+.workforce-split {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 28px;
+  align-items: start;
+  margin-top: 0;
+}
+
+/* LEFT PANEL */
+.capacity-studio {
+  background: var(--surface);
+  border-radius: 24px;
+  border: 1.5px solid #67e8f9;;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+  overflow: hidden;
+  position: sticky;
+  top: 20px;
+}
+.studio-header {
+  padding: 18px 20px 12px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+}
+.studio-header h3 {
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+.studio-badge {
+  background: var(--accent-bg);
+  padding: 3px 10px;
+  border-radius: 30px;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--accent);
+}
+.studio-form {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.form-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted2);
+}
+.studio-select {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 11px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 4 5-4' stroke='%2394a3b8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+}
+.studio-select:focus { border-color: var(--accent); outline: none; }
+.double-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.check-btn {
+  border: none;
+  border-radius: 40px;
+  padding: 13px;
+  font-weight: 600;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 6px;
+}
+
+.cap-result-module {
+  margin: 8px 20px 20px 20px;
+  border-radius: 18px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  display: none;
+  overflow: hidden;
+}
+.cap-result-module.green {
+  border-left: 4px solid #3b82f6;
+  background: rgba(59,130,246,0.08);
+}
+.cap-result-module.amber { border-left: 3px solid var(--amber); }
+.cap-result-module.red { border-left: 3px solid var(--red); }
+.cap-head {
+  padding: 14px 16px;
+  background: rgba(0,0,0,0.01);
+}
+.cap-verdict {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+.cap-note {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.cap-body {
+  padding: 12px 16px 16px;
+  border-top: 1px solid var(--border);
+}
+.officer-assign {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  border: 1px solid var(--border);
+}
+.officer-assign-icon {
+  width: 32px;
+  height: 32px;
+  background: var(--accent-bg);
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+.cap-metrics-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.metric-pill {
+  flex: 1;
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 8px 6px;
+  text-align: center;
+  border: 1px solid var(--border);
+}
+.metric-number {
+  font-family: 'Inter', monospace;
+  font-weight: 700;
+  font-size: 16px;
+}
+.metric-label {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--muted2);
+}
+
+/* RIGHT PANEL */
+.roster-wrapper {
+  background: transparent;
+}
+.roster-header-modern {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 20px;
+  padding-bottom: 8px;
+  border-bottom: 1.5px solid var(--border);
+}
+.roster-header-modern h2 {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: #0f172a;
+}
+.roster-count {
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--surface);
+  padding: 4px 12px;
+  border-radius: 40px;
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.agency-grid-modern {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.agency-card-modern {
+  background: var(--surface);
+  border-radius: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  border: 1.5px solid #c7f0ff;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+.agency-header-modern {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 22px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+.agency-icon-large { display: none; }
+.agency-info { flex: 1; }
+.agency-info h4 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: #0f172a;
+}
+.agency-meta-light {
+  display: flex;
+  gap: 12px;
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.util-ring {
+  margin-left: auto;
+  text-align: right;
+}
+.util-percent {
+  font-family: 'Inter', monospace;
+  font-size: 24px;
+  font-weight: 700;
+}
+.util-percent.green { color: #06b6d4; }
+.util-percent.amber { color: var(--amber); }
+.util-percent.red { color: var(--red); }
+.util-label-sm {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--muted2);
+}
+
+.officer-grid-modern {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 12px;
+  padding: 18px 22px 12px 22px;
+}
+
+.officer-card-modern {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface2);
+  border-radius: 18px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  transition: all 0.15s;
+  cursor: pointer;
+}
+.officer-card-modern:hover {
+  background: white;
+  border-color: var(--border2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+.officer-avatar {
+  width: 48px;
+  height: 48px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  border: 1px solid var(--border);
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.officer-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.officer-avatar.free {
+  background-color: rgba(59,130,246,0.10);
+  border-color: rgba(59,130,246,0.28);
+}
+.officer-avatar.on_case { background-color: var(--amber-bg); border-color: rgba(245,158,11,0.3); }
+.officer-avatar.at_capacity { background-color: var(--red-bg); border-color: rgba(239,68,68,0.3); }
+
+.officer-details { flex: 1; min-width: 0; }
+.officer-name-modern {
+  font-weight: 700;
+  font-size: 13px;
+  color: #0f172a;
+}
+.officer-id-badge {
+  font-family: monospace;
+  font-size: 9px;
+  color: var(--muted2);
+  margin-top: 2px;
+}
+.officer-contact-info {
+  font-size: 9px;
+  color: var(--accent);
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.status-pill-modern {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 20px;
+  margin-top: 4px;
+}
+.status-pill-modern.free { background: var(--green-bg); color: var(--green); }
+.status-pill-modern.on_case { background: var(--amber-bg); color: var(--amber); }
+.status-pill-modern.at_capacity { background: var(--red-bg); color: var(--red); }
+
+.categories-strip {
+  padding: 6px 22px 18px 22px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cat-tag-modern {
+  background: var(--surface3);
+  padding: 4px 12px;
+  border-radius: 30px;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.2px;
+  border: 1px solid var(--border);
+}
+
+.spinner-modern {
+  text-align: center;
+  padding: 60px;
+}
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--border2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin: 0 auto;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* MODAL STYLES */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+}
+.modal-overlay.active { display: flex; }
+.modal-container {
+  background: var(--surface);
+  border-radius: 28px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  overflow: hidden;
+  animation: modalSlideIn 0.25s ease;
+}
+@keyframes modalSlideIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.modal-header {
+  background: var(--surface2);
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-header h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--muted2);
+  transition: color 0.15s;
+}
+.modal-close:hover { color: var(--red); }
+.modal-body { padding: 24px; }
+.modal-form-group { margin-bottom: 20px; }
+.modal-form-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.modal-form-group input,
+.modal-form-group textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  background: var(--surface2);
+  transition: border-color 0.15s;
+}
+.modal-form-group input:focus,
+.modal-form-group textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.modal-form-group textarea { resize: vertical; min-height: 80px; }
+.modal-file-input { padding: 10px 0; }
+.current-profile-preview {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  background: var(--surface3);
+  border-radius: 16px;
+}
+.current-profile-preview img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.modal-submit {
+  width: 100%;
+  padding: 14px;
+  color: white;
+  border: none;
+  border-radius: 40px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.check-btn,
+.modal-submit {
+  background: linear-gradient(135deg, #67e8f9, #60a5fa);
+  transition: all 0.25s ease;
+}
+.check-btn:hover,
+.modal-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(59,130,246,0.25);
+  background: linear-gradient(135deg, #22d3ee, #3b82f6);
+}
+.officer-badge {
+  background: var(--accent-bg);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  display: inline-block;
+  margin-bottom: 16px;
+}
+.fa-solid,
+.fa-regular {
+  font-size: 0.95em;
+}
+@media (max-width: 880px) {
+  .workforce-split { grid-template-columns: 1fr; }
+  .capacity-studio { position: relative; top: 0; margin-bottom: 20px; }
+  .app-container { padding: 20px 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="app-container">
+  <div class="workforce-split">
+    <!-- LEFT PANEL: Capacity Checker -->
+    <div class="capacity-studio">
+      <div class="studio-header">
+        <h3><span><i class="fa-solid fa-brain"></i></span> AI Capacity Check<span class="studio-badge">smart dispatch</span></h3>
+      </div>
+      <div class="studio-form">
+        <div class="form-group">
+          <div class="form-label">Agency</div>
+          <select class="studio-select" id="capAgencyModern">
+            <option value="NEA">NEA — Environment Agency</option>
+            <option value="Town Council">Town Council — Tampines TC</option>
+            <option value="PUB">PUB — Public Utilities</option>
+            <option value="SCDF">SCDF — Civil Defence</option>
+            <option value="Police">Police — Singapore Police</option>
+            <option value="LTA">LTA — Land Transport</option>
+            <option value="NParks">NParks — Parks Board</option>
+          </select>
+        </div>
+        <div class="double-row">
+          <div class="form-group">
+            <div class="form-label">Category</div>
+            <select class="studio-select" id="capCategoryModern">
+              <option value="cleanliness">Cleanliness</option>
+              <option value="structural">Structural</option>
+              <option value="electrical">Electrical</option>
+              <option value="water">Water</option>
+              <option value="safety">Safety</option>
+              <option value="pest">Pest</option>
+              <option value="noise">Noise</option>
+              <option value="vehicles">Vehicles</option>
+              <option value="greenery">Greenery</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <div class="form-label">Priority</div>
+            <select class="studio-select" id="capPriorityModern">
+              <option value="CRITICAL">Critical</option>
+              <option value="HIGH">High</option>
+              <option value="MEDIUM" selected>Medium</option>
+              <option value="LOW">Low</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="form-label">SLA Target</div>
+          <select class="studio-select" id="capSlaModern">
+            <option value="IMMEDIATE">Immediate</option>
+            <option value="4 hours">4 Hours SLA</option>
+            <option value="24 hours" selected>24 Hours SLA</option>
+            <option value="48 hours">48 Hours SLA</option>
+            <option value="2 working days">2 Working Days</option>
+          </select>
+        </div>
+        <button class="check-btn" id="checkCapacityBtn">Evaluate Capacity →</button>
+        <div class="cap-result-module" id="capResultModern"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: Officer Roster -->
+    <div class="roster-wrapper">
+      <div class="roster-header-modern">
+        <h2>Handyman Roster · All Agencies</h2>
+        <div class="roster-count" id="rosterCountBadge">0 units</div>
+      </div>
+      <div class="agency-grid-modern" id="agencyListModern">
+        <div class="spinner-modern"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Update Officer Profile -->
+<div id="officerModal" class="modal-overlay">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h3>Update Handyman Profile</h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="officer-badge" id="modalOfficerName">Handyman Name</div>
+      <form id="contactOfficerForm">
+        <div class="modal-form-group">
+          <label><i class="fa-solid fa-envelope"></i> Email Address</label>
+          <input type="email" id="contactEmail" placeholder="officer@agency.gov.sg">
+        </div>
+        <div class="modal-form-group">
+          <label><i class="fa-solid fa-phone"></i> Phone Number</label>
+          <input type="tel" id="contactPhone" placeholder="+65 9123 4567">
+        </div>
+        <div class="modal-form-group">
+          <label><i class="fa-solid fa-image"></i> Profile Picture</label>
+          <input type="file" id="contactImage" accept="image/*" class="modal-file-input">
+          <div id="imagePreview" style="margin-top: 10px;"></div>
+        </div>
+        <button type="submit" class="modal-submit"><i class="fa-solid fa-floppy-disk"></i> Save Profile</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentOfficer = null;
+  let currentAgency = null;
+  let officerProfilesCache = {};
+
+  // Load officer profile from database
+  async function loadOfficerProfile(officerId, agency) {
+    const key = `${officerId}|${agency}`;
+    if (officerProfilesCache[key]) return officerProfilesCache[key];
+    try {
+      const resp = await fetch(`/officer/profile/${encodeURIComponent(officerId)}/${encodeURIComponent(agency)}`);
+      const data = await resp.json();
+      if (data && data.exists !== false) {
+        officerProfilesCache[key] = data;
+        return data;
+      }
+      return null;
+    } catch(e) {
+      console.error('Failed to load profile:', e);
+      return null;
+    }
+  }
+
+  // Get profile image URL
+  function getProfileImageUrl(profile) {
+    if (profile && profile.profile_image) {
+      return `/uploads/${profile.profile_image}`;
+    }
+    return null;
+  }
+
+  function utilColorClass(pct) {
+    if (pct >= 100) return 'red';
+    if (pct >= 50) return 'amber';
+    return 'green';
+  }
+
+  function getInitials(name) {
+    let clean = name.replace(/^Officer\s+/i, '').trim();
+    let parts = clean.split(' ');
+    return parts.slice(0,2).map(p => p[0]).join('').toUpperCase();
+  }
+
+  const statusMap = { free: '● Available', on_case: '● On case', at_capacity: '● Full' };
+
+  // Open modal with officer data
+  async function openOfficerModal(officer, agency) {
+    currentOfficer = officer;
+    currentAgency = agency;
+
+    document.getElementById('modalOfficerName').innerHTML = `<i class="fa-solid fa-user"></i> ${officer.name} (${officer.id}) · ${agency}`;
+    document.getElementById('contactEmail').value = '';
+    document.getElementById('contactPhone').value = '';
+    document.getElementById('contactImage').value = '';
+    document.getElementById('imagePreview').innerHTML = '';
+
+    // Load existing profile from database
+    const profile = await loadOfficerProfile(officer.id, agency);
+    if (profile && profile.email) {
+      document.getElementById('contactEmail').value = profile.email;
+      document.getElementById('contactPhone').value = profile.phone || '';
+
+      if (profile.profile_image) {
+        const imgUrl = `/uploads/${profile.profile_image}`;
+        document.getElementById('imagePreview').innerHTML = `
+          <div class="current-profile-preview">
+            <img src="${imgUrl}" alt="Current profile">
+            <div>
+              <p style="font-size: 11px; font-weight: 600;">Current profile picture</p>
+              <p style="font-size: 9px; color: var(--muted);">Upload new image to replace</p>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    document.getElementById('officerModal').classList.add('active');
+  }
+
+  function closeModal() {
+    document.getElementById('officerModal').classList.remove('active');
+    currentOfficer = null;
+    currentAgency = null;
+  }
+
+  // Preview uploaded image
+  document.getElementById('contactImage').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        document.getElementById('imagePreview').innerHTML = `
+          <div class="current-profile-preview">
+            <img src="${event.target.result}" alt="New profile preview">
+            <div>
+              <p style="font-size: 11px; font-weight: 600; color: var(--green);">New profile picture</p>
+              <p style="font-size: 9px; color: var(--muted);">Will be saved to database</p>
+            </div>
+          </div>
+        `;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // Handle form submission
+  document.getElementById('contactOfficerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const email = document.getElementById('contactEmail').value;
+    const phone = document.getElementById('contactPhone').value;
+    const imageFile = document.getElementById('contactImage').files[0];
+
+    if (!email) {
+      alert('Please fill in email address.');
+      return;
+    }
+
+    const submitBtn = document.querySelector('.modal-submit');
+    submitBtn.textContent = 'Saving...';
+    submitBtn.disabled = true;
+
+    try {
+      const formData = new FormData();
+      formData.append('officer_name', currentOfficer.name);
+      formData.append('officer_id', currentOfficer.id);
+      formData.append('agency', currentAgency);
+      formData.append('email', email);
+      formData.append('phone', phone);
+      if (imageFile) {
+        formData.append('image', imageFile);
+      }
+
+      const response = await fetch('/officer/contact', {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        alert(`✓ Profile saved for ${currentOfficer.name}\n\nEmail: ${email}\nPhone: ${phone}`);
+        // Clear cache and refresh roster to show updated profile pictures
+        officerProfilesCache = {};
+        loadModernRoster();
+        closeModal();
+      } else {
+        alert('Error: ' + (result.error || 'Failed to save profile'));
+      }
+    } catch (err) {
+      console.error('Error saving profile:', err);
+      alert('Network error. Please try again.');
+    } finally {
+      submitBtn.textContent = '💾 Save Profile';
+      submitBtn.disabled = false;
+    }
+  });
+
+  // Close modal when clicking outside
+  document.getElementById('officerModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  // Load roster from backend and display with profile pictures
+  async function loadModernRoster() {
+    try {
+      const resp = await fetch('/workforce');
+      const data = await resp.json();
+      const agencies = data.agencies;
+
+      const agencyArray = await Promise.all(Object.entries(agencies).map(async ([key, ag]) => {
+        const utilClass = utilColorClass(ag.utilisation_pct);
+
+        // Load profiles for all officers in this agency
+        const officersWithProfiles = await Promise.all((ag.officers || []).map(async (off) => {
+          const profile = await loadOfficerProfile(off.id, key);
+          return { ...off, profile };
+        }));
+
+        const officersHtml = officersWithProfiles.map(off => {
+          const initials = getInitials(off.name);
+          const pillStat = statusMap[off.status] || off.status;
+          const caseInfo = off.open_cases === 1 ? '1 open case' : `${off.open_cases} cases`;
+
+          // Build avatar HTML (image if exists, otherwise initials)
+          let avatarHtml = '';
+          const profileImg = getProfileImageUrl(off.profile);
+          if (profileImg) {
+            avatarHtml = `<img src="${profileImg}" alt="${off.name}" style="width:100%;height:100%;object-fit:cover;">`;
+          } else {
+            avatarHtml = initials;
+          }
+
+          // Show contact info if available
+          const contactInfo = (off.profile && off.profile.email) ?
+            `<div class="officer-contact-info"><i class="fa-solid fa-envelope"></i> ${off.profile.email.substring(0, 20)}${off.profile.email.length > 20 ? '…' : ''}</div>` : '';
+
+          return `
+            <div class="officer-card-modern" onclick="openOfficerModal(${JSON.stringify(off).replace(/"/g, '&quot;')}, '${key}')">
+              <div class="officer-avatar ${off.status}">${avatarHtml}</div>
+              <div class="officer-details">
+                <div class="officer-name-modern">${off.name}</div>
+                <div class="officer-id-badge">${off.id}</div>
+                ${contactInfo}
+                <div class="status-pill-modern ${off.status}">${pillStat} · ${caseInfo}</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        const catsHtml = (ag.categories || []).map(c => `<div class="cat-tag-modern">${c}</div>`).join('');
+
+        return `
+          <div class="agency-card-modern">
+            <div class="agency-header-modern">
+              <div class="agency-info">
+                <h4>${key} — ${ag.full_name}</h4>
+                <div class="agency-meta-light">
+                  <span>${ag.department}</span>
+                  <span>•</span>
+                  <span><i class="fa-regular fa-clock"></i> ${ag.shift_hours}</span>
+                </div>
+              </div>
+              <div class="util-ring">
+                <div class="util-percent ${utilClass}">${ag.utilisation_pct}%</div>
+                <div class="util-label-sm">utilised</div>
+              </div>
+            </div>
+            <div class="officer-grid-modern">
+              ${officersHtml || '<div style="padding:12px; font-size:12px; color:var(--muted)">No handyman assigned</div>'}
+            </div>
+            ${catsHtml ? `<div class="categories-strip">${catsHtml}</div>` : ''}
+          </div>
+        `;
+      }));
+
+      document.getElementById('rosterCountBadge').innerText = agencyArray.length + ' agencies';
+      document.getElementById('agencyListModern').innerHTML = agencyArray.join('');
+    } catch(e) {
+      console.error('Error loading roster:', e);
+      document.getElementById('agencyListModern').innerHTML = `<div style="padding: 40px; text-align:center; color:var(--red)"><i class="fa-solid fa-triangle-exclamation" style="color: #FFDE21"></i> ${e.message}</div>`;
+    }
+  }
+
+  // Capacity check function
+  async function runModernCapacityCheck() {
+    const agency = document.getElementById('capAgencyModern').value;
+    const category = document.getElementById('capCategoryModern').value;
+    const priority = document.getElementById('capPriorityModern').value;
+    const sla = document.getElementById('capSlaModern').value;
+    const resultContainer = document.getElementById('capResultModern');
+    resultContainer.style.display = 'block';
+    resultContainer.className = 'cap-result-module';
+    resultContainer.innerHTML = '<div style="padding:20px; text-align:center"><div class="spinner" style="width:24px;height:24px"></div><p style="font-size:11px;margin-top:8px">checking capacity...</p></div>';
+    try {
+      const url = `/workforce/capacity?agency=${encodeURIComponent(agency)}&category=${category}&priority=${priority}&sla=${encodeURIComponent(sla)}`;
+      const resp = await fetch(url);
+      const cap = await resp.json();
+      let verdictClass = 'green';
+      if (cap.capacity_verdict && cap.capacity_verdict.includes('🔴')) verdictClass = 'red';
+      else if (cap.capacity_verdict && cap.capacity_verdict.includes('<i class="fa-solid fa-triangle-exclamation" style="color: #FFDE21"></i>')) verdictClass = 'amber';
+      resultContainer.className = `cap-result-module ${verdictClass}`;
+      const officerBlock = cap.assigned_position ? `
+        <div class="officer-assign">
+          <div class="officer-assign-icon"><i class="fa-solid fa-user"></i></div>
+          <div><b>${cap.assigned_position.name}</b> <span style="font-size:11px; color:var(--muted)">${cap.assigned_position.id} · ${cap.assigned_position.open_cases ?? 0} open case(s)</span></div>
+        </div>
+      ` : `<div class="officer-assign"><span><i class="fa-solid fa-triangle-exclamation" style="color: #FFDE21"></i> No handyman available — queue buildup</span></div>`;
+const queueNote = cap.queue_cases_ahead > 0
+  ? `<i class="fa-solid fa-list-check"></i> ${cap.queue_cases_ahead} handyman currently on case`
+  : '<i class="fa-solid fa-circle-check" style="color:#5CE65C"></i> Immediate pickup possible';      resultContainer.innerHTML = `
+        <div class="cap-head">
+          <div class="cap-verdict">${cap.capacity_verdict || 'Available'}</div>
+          <div class="cap-note">${cap.capacity_note || 'Handyman can respond'}</div>
+        </div>
+        <div class="cap-body">
+          ${officerBlock}
+          <div class="cap-metrics-row">
+            <div class="metric-pill"><div class="metric-number">${cap.estimated_response_hrs || 2}h</div><div class="metric-label">Est. response</div></div>
+            <div class="metric-pill"><div class="metric-number">${cap.free_staff_count || 0}</div><div class="metric-label">Free handyman</div></div>
+            <div class="metric-pill"><div class="metric-number">${cap.utilisation_pct || 0}%</div><div class="metric-label">Utilised</div></div>
+          </div>
+          <div style="font-size:10px; font-family: monospace; margin-top: 8px; color: var(--muted);">${queueNote}</div>
+        </div>
+      `;
+    } catch(err) {
+      resultContainer.className = 'cap-result-module red';
+      resultContainer.innerHTML = `<div class="cap-head"><div class="cap-verdict">🔴 Error</div><div class="cap-note">${err.message}</div></div>`;
+    }
+  }
+
+  // Event listeners
+  document.getElementById('checkCapacityBtn').addEventListener('click', runModernCapacityCheck);
+
+  // Initial load and auto-refresh every 60 seconds
+  loadModernRoster();
+  setInterval(loadModernRoster, 60000);
+</script>
+</body>
+</html>

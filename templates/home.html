@@ -1,0 +1,1491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Tampines Estate Reporter — Home</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#1a2f6e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="EstateReport">
+<link rel="apple-touch-icon" href="/static/icon-192.png">
+<link rel="stylesheet" href="/static/css/style.css?v=1">
+<link rel="stylesheet" href="/static/css/resident.css?v=1">
+</head>
+<body>
+
+<!-- ═══ HIDDEN FILE INPUTS ═══ -->
+<input type="file" id="imageInput"  accept="image/*"         multiple onchange="handleImageFile(this)">
+<input type="file" id="videoInput"  accept="image/*,video/*" multiple onchange="handleUploadFile(this)">
+
+<!-- ═══ VIDEO RECORD MODAL ═══ -->
+<!-- ═══ VIDEO MODAL — FULLSCREEN ═══ -->
+<div class="cam-fullscreen" id="videoModal">
+
+  <!-- Live viewfinder -->
+  <video id="videoRecordPreview" autoplay playsinline muted
+         style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000;"></video>
+
+  <!-- Playback after recording -->
+  <video id="videoPlayback" controls
+         style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;"></video>
+
+  <!-- Top bar -->
+  <div class="cam-topbar">
+    <button class="cam-close-btn" onclick="closeVideoModal()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+    <div class="cam-topbar-title">Record a Video</div>
+    <div style="width:40px;"></div>
+  </div>
+
+  <!-- Recording timer -->
+  <div id="videoRecTimer" style="display:none;position:absolute;top:110px;left:50%;transform:translateX(-50%);
+       background:rgba(220,38,38,0.85);color:white;font-family:'Nunito',sans-serif;
+       font-size:14px;font-weight:900;padding:6px 18px;border-radius:30px;letter-spacing:1.5px;
+       z-index:20;backdrop-filter:blur(6px);">⏺ 00:00</div>
+
+  <!-- Corner guides -->
+  <div class="cam-guides">
+    <div class="cam-guide tl"></div>
+    <div class="cam-guide tr"></div>
+    <div class="cam-guide bl"></div>
+    <div class="cam-guide br"></div>
+  </div>
+
+  <!-- Controls — idle (ready to record) -->
+  <div class="cam-controls" id="vidControlsIdle">
+    <div class="cam-hint">Point at the issue and tap Record</div>
+    <div class="cam-bottom-row">
+      <button class="cam-flip-btn" id="vidFlipBtn" onclick="flipVideoCamera()" title="Flip camera">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 4v6h6"/><path d="M23 20v-6h-6"/>
+          <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>
+        </svg>
+      </button>
+      <button class="vid-record-btn" id="videoStartBtn" onclick="startVideoRecord()">
+        <div class="vid-record-dot"></div>
+      </button>
+      <div style="width:56px;"></div>
+    </div>
+  </div>
+
+  <!-- Controls — recording -->
+  <div class="cam-controls" id="vidControlsRecording" style="display:none;">
+    <div class="cam-hint" style="color:#fca5a5;">Recording in progress…</div>
+    <div class="cam-bottom-row" style="justify-content:center;">
+      <button class="vid-stop-btn" id="videoStopBtn" onclick="stopVideoRecord()">
+        <div class="vid-stop-square"></div>
+      </button>
+    </div>
+  </div>
+
+  <!-- Controls — preview -->
+  <div class="cam-controls" id="vidControlsPreview" style="display:none;">
+    <div class="cam-hint">Happy with this? Use it or retake.</div>
+    <div class="cam-bottom-row">
+      <button class="cam-pill-btn cam-retake" id="videoRetakeBtn" onclick="retakeVideo()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/>
+        </svg>
+        Retake
+      </button>
+      <button class="cam-pill-btn cam-use" id="videoUseBtn" onclick="useVideo()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Use Video
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ CAMERA MODAL ═══ -->
+<div class="cam-fullscreen" id="cameraModal">
+
+  <!-- Live viewfinder -->
+  <video id="cameraPreview" autoplay playsinline muted
+         style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000;"></video>
+
+  <!-- Captured still -->
+  <img id="capturedImg"
+       style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"/>
+
+  <!-- Hidden canvas for capture -->
+  <canvas id="cameraCanvas" style="display:none;"></canvas>
+
+  <!-- Top bar -->
+  <div class="cam-topbar">
+    <button class="cam-close-btn" onclick="closeCamera()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+    <div class="cam-topbar-title">Take a Photo</div>
+    <div style="width:40px;"></div><!-- spacer -->
+  </div>
+
+  <!-- Viewfinder corner guides -->
+  <div class="cam-guides">
+    <div class="cam-guide tl"></div>
+    <div class="cam-guide tr"></div>
+    <div class="cam-guide bl"></div>
+    <div class="cam-guide br"></div>
+  </div>
+
+  <!-- Bottom controls — live mode -->
+  <div class="cam-controls" id="camControlsLive">
+    <div class="cam-hint">Align the issue in frame</div>
+    <div class="cam-bottom-row">
+      <div style="width:56px;"></div><!-- spacer -->
+      <button class="cam-shutter" onclick="capturePhoto()">
+        <div class="cam-shutter-ring"></div>
+        <div class="cam-shutter-inner"></div>
+      </button>
+      <button class="cam-flip-btn" id="camFlipBtn" onclick="flipCamera()" title="Flip camera">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 4v6h6"/><path d="M23 20v-6h-6"/>
+          <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Bottom controls — preview mode -->
+  <div class="cam-controls" id="camControlsPreview" style="display:none;">
+    <div class="cam-hint">Looking good? Use this photo.</div>
+    <div class="cam-bottom-row">
+      <button class="cam-pill-btn cam-retake" onclick="retakePhoto()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/>
+        </svg>
+        Retake
+      </button>
+      <button class="cam-pill-btn cam-use" onclick="useCapture()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Use Photo
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ INSTALL BANNER ═══ -->
+<div class="install-banner" id="installBanner">
+  <span>📲 Install this app on your phone!</span>
+  <button id="installBtn">Install</button>
+  <button class="install-dismiss" onclick="document.getElementById('installBanner').classList.remove('show')">✕</button>
+</div>
+
+<!-- ═══ LOADING ═══
+<div class="loading-screen" id="loadingScreen">
+  <div class="loading-spinner"></div>
+  <div class="loading-title">Sending your report…</div>
+  <div class="loading-steps-list">
+    <div class="ls active" id="ls1"><div class="ls-dot"></div> 🎙️ Reading your voice</div>
+    <div class="ls"        id="ls2"><div class="ls-dot"></div> 📷 Analysing photo</div>
+    <div class="ls"        id="ls3"><div class="ls-dot"></div> 📍 Checking location</div>
+    <div class="ls"        id="ls4"><div class="ls-dot"></div> 🏢 Routing to department</div>
+  </div>
+</div> -->
+
+<!-- ═══ CLARIFICATION MODAL ═══ -->
+<div class="clarif-modal" id="clarifModal">
+  <div class="clarif-box">
+    <div class="clarif-title">🤔 One Quick Question</div>
+    <div class="clarif-q" id="clarifQuestion"></div>
+    <textarea class="clarif-textarea" id="clarifAnswer" placeholder="Type your answer here…" rows="3"></textarea>
+    <div class="clarif-btn-row">
+      <button class="clarif-skip"   onclick="submitClarification(true)">Skip</button>
+      <button class="clarif-submit" onclick="submitClarification(false)">Submit & Route →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SUCCESS SCREEN ═══ -->
+<div class="success-screen" id="successScreen">
+  <div class="success-header" id="successHeader">
+    <div class="success-icon" id="successIcon">✅</div>
+    <h2 id="successHeadline">Report Sent!</h2>
+    <p id="successTime"></p>
+  </div>
+  <div class="success-body">
+
+    <div class="safety-card" id="safetyCard">
+      <div class="safety-card-title" id="safetyCardTitle">👉 What to Do Now</div>
+      <div class="safety-steps" id="safetySteps"></div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-card-label">📢 Message to You</div>
+      <div class="resident-message" id="residentMsg"></div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-card-label">⚡ Priority Level</div>
+      <span class="priority-chip" id="priorityVal"></span>
+    </div>
+
+    <div class="info-card">
+      <div class="info-card-label">🏢 Agencies Notified</div>
+      <div class="agency-list" id="agencyList"></div>
+    </div>
+
+    <div class="info-card" id="locationCard" style="display:none">
+      <div class="info-card-label">📍 Location</div>
+      <div class="info-card-value" id="locationVal"></div>
+    </div>
+
+    <div class="info-card" id="transcriptCard" style="display:none">
+      <div class="info-card-label">🎙️ What You Said</div>
+      <div class="info-card-value" id="transcriptVal" style="font-style:italic;color:var(--muted);font-weight:600;"></div>
+    </div>
+
+    <div class="info-card" id="whatsappCard" style="display:none">
+      <div class="info-card-label">📱 WhatsApp Confirmation</div>
+      <div class="info-card-value" id="whatsappVal" style="color:var(--green);"></div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-card-label">🔖 Case Reference</div>
+      <div class="info-card-value big" id="caseIdVal"></div>
+    </div>
+
+    <button class="new-report-btn" onclick="resetApp()">↩ Report Another Issue</button>
+  </div>
+</div>
+
+<!-- ═══ HEADER ═══ -->
+<header>
+  <!-- Brand wordmark -->
+  <img class="header-logo-full"
+     src="/static/logo-header.png"
+     alt="Zentra">
+
+  <!-- Notification bell -->
+  <button class="header-bell-btn" id="headerBell" onclick="toggleNotifPanel()" aria-label="Notifications">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+      <path d="M13.73 21a2 2 0 01-3.46 0"/>
+    </svg>
+    <span class="header-bell-dot" id="headerBellDot"></span>
+  </button>
+</header>
+
+<!-- Notification panel -->
+<div class="notif-panel" id="notifPanel">
+  <div class="notif-panel-inner">
+    <div class="notif-panel-header">
+      <span class="notif-panel-title">Notifications</span>
+      <button class="notif-panel-close" onclick="toggleNotifPanel()">✕</button>
+    </div>
+    <div class="notif-panel-body" id="notifPanelBody">
+      <div class="notif-empty">
+        <div class="notif-empty-icon">🔔</div>
+        <div class="notif-empty-text">No notifications yet</div>
+        <div class="notif-empty-sub">Updates on your reports will appear here</div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="notif-backdrop" id="notifBackdrop" onclick="toggleNotifPanel()"></div>
+
+
+<!-- ═══ MAIN / HOME PAGE ═══ -->
+<main id="homePage">
+
+  <!-- Upload address strip -->
+  <div class="upload-addr-strip" id="uploadAddrStrip" style="display:none">
+    <div style="font-size:12px;color:#666;margin-bottom:4px;">📁 Uploaded photo — enter issue location:</div>
+    <input type="text" id="uploadAddrInput" placeholder="e.g. Blk 456 Tampines St 42"
+      style="width:100%;padding:9px 12px;border:1.5px solid #d1d5db;border-radius:10px;font-size:14px;font-family:inherit;box-sizing:border-box;"/>
+  </div>
+
+  <!-- ── ACTION BUTTONS (2×2 grid) ── -->
+  <div class="action-stack">
+
+    <!-- How-to banner -->
+    <!-- ═══ AGENCY CAROUSEL ═══ -->
+    <div class="agency-carousel-wrap">
+      <div class="agency-carousel" id="agencyCarousel">
+        <div class="agency-slide-link">
+          <div class="agency-slide">
+            <img class="agency-slide-bg" src="/static/scdf_image.png" alt=""/>
+          </div>
+        </div>
+        <div class="agency-slide-link">
+          <div class="agency-slide">
+            <img class="agency-slide-bg" src="/static/nea_image.png" alt=""/>
+          </div>
+        </div>
+        <div class="agency-slide-link">
+          <div class="agency-slide">
+            <img class="agency-slide-bg" src="/static/hdb_image.png" alt=""/>
+          </div>
+        </div>
+        <div class="agency-slide-link">
+          <div class="agency-slide">
+            <img class="agency-slide-bg" src="/static/sp_image.png" alt=""/>
+          </div>
+        </div>
+        <div class="agency-slide-link">
+          <div class="agency-slide">
+            <img class="agency-slide-bg" src="/static/pub_image.png" alt=""/>
+          </div>
+        </div>
+        <div class="agency-slide-link">
+          <div class="agency-slide">
+            <img class="agency-slide-bg" src="/static/police_image.png" alt=""/>
+          </div>
+        </div>
+        <div class="agency-slide-link">
+          <div class="agency-slide">
+            <img class="agency-slide-bg" src="/static/nparks_image.png" alt=""/>
+          </div>
+        </div>
+
+      </div>
+      <div class="agency-dots" id="agencyDots">
+        <span class="agency-dot active"></span><span class="agency-dot"></span>
+        <span class="agency-dot"></span><span class="agency-dot"></span>
+        <span class="agency-dot"></span><span class="agency-dot"></span>
+        <span class="agency-dot"></span>
+      </div>
+    </div><!-- /agency-carousel-wrap -->
+
+    <script>
+    // Apply agency-uploaded carousel images — auto-polls every 10s so residents
+    // see new images immediately without needing to refresh the page.
+    (function applyCarouselImages() {
+      const KEY_MAP = ['scdf','nea','hdb','sp','pub','police','nparks'];
+      const DEFAULT_SRCS = [
+        '/static/scdf_image.png', '/static/nea_image.png', '/static/hdb_image.png',
+        '/static/sp_image.png', '/static/pub_image.png', '/static/police_image.png',
+        '/static/nparks_image.png'
+      ];
+
+      function fetchAndApply() {
+        fetch('/carousel-images')
+          .then(function(r) { return r.ok ? r.json() : {}; })
+          .then(function(stored) {
+            var slides = document.querySelectorAll('#agencyCarousel .agency-slide-bg');
+            KEY_MAP.forEach(function(key, i) {
+              if (!slides[i]) return;
+              var newSrc = stored[key] || DEFAULT_SRCS[i];
+              if (slides[i].getAttribute('src') !== newSrc) {
+                slides[i].src = newSrc;
+              }
+            });
+          })
+          .catch(function() { /* silently ignore — defaults stay */ });
+      }
+
+      fetchAndApply();                    // run immediately on load
+      setInterval(fetchAndApply, 10000);  // then re-check every 10 seconds
+    })();
+    </script>
+
+    <!-- ── MONTHLY STATS STRIP ── -->
+    <div class="monthly-stats-strip" id="monthlyStatsStrip">
+
+      <!-- Total Reports This Month -->
+      <div class="mstat-card reports">
+        <div class="mstat-top">
+          <span class="mstat-month-tag" id="mstatMonthLabel">This Month</span>
+        </div>
+        <div class="mstat-number" id="mstatTotal">0</div>
+        <div class="mstat-label">Reports Submitted</div>
+        <div class="mstat-bar-wrap">
+          <div class="mstat-bar-fill" id="mstatTotalBar" style="width:0%"></div>
+        </div>
+      </div>
+
+      <!-- Resolved This Month -->
+      <div class="mstat-card resolved">
+        <div class="mstat-top">
+          <span class="mstat-month-tag">Resolved</span>
+        </div>
+        <div class="mstat-number" id="mstatResolved">0</div>
+        <div class="mstat-label">Issues Resolved</div>
+        <div class="mstat-bar-wrap">
+          <div class="mstat-bar-fill" id="mstatResolvedBar" style="width:0%"></div>
+        </div>
+      </div>
+
+    </div><!-- /monthly-stats-strip -->
+
+
+
+    <!-- hidden elements kept for JS compat -->
+    <div id="speakBadge"  style="display:none"></div>
+    <div id="speakSub"    style="display:none"></div>
+    <div id="speakTimer"  style="display:none"></div>
+    <div id="waveform"    style="display:none"></div>
+    <div id="speakTitle"  style="display:none"></div>
+    <div id="speakSub2"   style="display:none"></div>
+    <div id="speakRing"   style="display:none"></div>
+    <div id="videoTitle"  style="display:none"></div>
+    <div id="videoSub"    style="display:none"></div>
+    <div id="videoIconWrap" style="display:none"></div>
+    <div id="camIconWrap"   style="display:none"></div>
+
+    <!-- hidden badges kept for JS compat -->
+    <div id="uploadBadge"  style="display:none"></div>
+    <div id="cameraBadge"  style="display:none"></div>
+    <div id="btnUpload"    style="display:none"></div>
+    <div id="btnCamera"    style="display:none"></div>
+    <div id="btnVideo"     style="display:none"></div>
+    <div id="speakBtn"     style="display:none"></div>
+
+    <!-- Media gallery -->
+    <div class="media-gallery" id="mediaGallery">
+      <div class="video-wrap" id="videoWrap" style="display:none">
+        <button class="video-remove" onclick="clearVideo()">✕</button>
+        <video id="videoPreview" controls></video>
+      </div>
+      <div class="thumb-scroll" id="thumbScroll"></div>
+      <button class="add-more-pill" id="addMorePill" style="display:none"
+              onclick="document.getElementById('videoInput').click()">
+        ➕ Add more photos
+      </button>
+    </div>
+
+    <!-- Voice preview -->
+    <div class="voice-preview" id="voicePreview">
+      <div class="voice-preview-top">
+        <div class="voice-preview-icon">🎤</div>
+        <div class="voice-preview-text">
+          <strong id="voiceDuration">Voice recorded</strong>
+          <span>Tap Speak above to re-record</span>
+        </div>
+        <button class="voice-remove-btn" onclick="clearVoiceRecording()" title="Remove recording">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <audio id="voicePlayer" controls></audio>
+    </div>
+
+  </div>
+
+  <!-- hidden stubs for JS compat -->
+  <div id="errorBox" style="display:none"></div>
+  <button id="sendBtn" style="display:none"></button>
+
+  <!-- ═══ RECENT REPORTS ═══ -->
+  <div class="recent-reports-section" id="recentReportsSection">
+    <div class="rr-header">
+      <div class="rr-title">Recent Reports</div>
+      <a class="rr-view-all" href="/history.html?tab=history">View All</a>
+    </div>
+    <div class="rr-list" id="rrList">
+      <!-- populated by JS -->
+    </div>
+    <div class="rr-empty" id="rrEmpty" style="display:none;">
+      <div class="rr-empty-icon">
+        <img src="/static/report-icon.png" alt="No Reports">
+      </div>
+      <div class="rr-empty-text">No reports yet</div>
+      <div class="rr-empty-sub">Your submitted reports will appear here</div>
+    </div>
+  </div>
+
+  <!-- ── ISSUE MAP BUTTON ── -->
+  <button class="map-banner-btn" id="mapBannerBtn" onclick="openIssueMap()">
+    <div class="map-banner-icon">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/>
+        <line x1="9" y1="3" x2="9" y2="18"/>
+        <line x1="15" y1="6" x2="15" y2="21"/>
+      </svg>
+    </div>
+    <div class="map-banner-text">
+      <div class="map-banner-title">Issue Map</div>
+      <div class="map-banner-sub">See all reported issues near you</div>
+    </div>
+    <span class="map-banner-badge" id="mapReportCount"></span>
+    <svg class="map-banner-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a2f6e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="9 18 15 12 9 6"/>
+    </svg>
+  </button>
+
+</main>
+
+<script>
+// ═══ RENDER RECENT REPORTS ═══
+function renderRecentReportsFromStorage() {
+  const profile    = (() => { try { return JSON.parse(localStorage.getItem('tampines_profile') || 'null'); } catch(e){ return null; } })();
+  const phone      = profile ? profile.phone : 'guest';
+  const historyKey = 'tampines_history_' + phone;
+  let history      = [];
+  try { history = JSON.parse(localStorage.getItem(historyKey) || '[]'); } catch(e) {}
+
+  // Show latest 3, newest first
+  const recent = history.slice().reverse().slice(0, 3);
+
+  const list  = document.getElementById('rrList');
+  const empty = document.getElementById('rrEmpty');
+  if (!list) return;
+  list.innerHTML = ''; // clear before re-render
+
+  if (!recent.length) {
+    list.style.display  = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  list.style.display  = 'flex';
+
+  const EMOJI_MAP = {
+    pothole:'🕳️', crack:'🕳️', road:'🕳️', footpath:'🕳️',
+    litter:'🗑️', dump:'🗑️', bin:'🗑️', waste:'🗑️',
+    flood:'💧', water:'💧', drain:'💧', pipe:'💧', leak:'💧',
+    light:'💡', lamp:'💡', electrical:'⚡', power:'⚡',
+    tree:'🌳', grass:'🌿', plant:'🌿', green:'🌿',
+    pest:'🐀', rat:'🐀', mosquito:'🦟', bee:'🐝', pigeon:'🐦',
+    noise:'🔊', smoke:'💨', smell:'💨',
+    parking:'🚗', vehicle:'🚗', pmd:'🛴',
+    graffiti:'🎨', sign:'🪧', bench:'🪑', shelter:'⛺',
+    fire:'🔥', hazard:'⚠️', safety:'⚠️', exit:'🚪',
+    lift:'🛗', cctv:'📷', letterbox:'📬', railing:'🚧', wall:'🧱',
+    broken:'🔧', damage:'🔧',
+  };
+
+  function getEmoji(report) {
+    const txt = ((report.summary || '') + ' ' + (report.caseId || '')).toLowerCase();
+    for (const [kw, em] of Object.entries(EMOJI_MAP)) {
+      if (txt.includes(kw)) return em;
+    }
+    return '📋';
+  }
+
+  function statusChip(report) {
+    const s = (report.status || 'open').toLowerCase().replace(/\s+/g,'');
+    const MAP = {
+      open:       { cls:'open',       label:'Open'        },
+      inprogress: { cls:'inprogress', label:'In Progress' },
+      'in-progress':{ cls:'inprogress',label:'In Progress'},
+      resolved:   { cls:'resolved',   label:'Resolved'    },
+      underreview:{ cls:'review',     label:'Under Review'},
+      review:     { cls:'review',     label:'Under Review'},
+    };
+    const m = MAP[s] || { cls:'open', label:'Open' };
+    return `<span class="rr-status-chip ${m.cls}">${m.label}</span>`;
+  }
+
+  function labelChip(report) {
+    let label = '';
+    if (report.summary) {
+      // Try to extract a short issue label
+      label = report.summary.replace(/^Report submitted[: ]*/i,'').trim();
+      // Capitalise first word
+      if (label) label = label.charAt(0).toUpperCase() + label.slice(1);
+      if (label.length > 20) label = label.slice(0,18) + '…';
+    }
+    if (!label) label = 'Issue';
+    return `<span class="rr-label-chip">${label}</span>`;
+  }
+
+  function formatDate(dateStr) {
+    if (!dateStr) return '';
+    // "14/05/2026, 10:32 AM" → "14 May 2026"
+    const parts = dateStr.split('/');
+    if (parts.length < 3) return dateStr.split(',')[0];
+    const day   = parts[0];
+    const month = parseInt(parts[1], 10);
+    const year  = parts[2].split(',')[0];
+    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${day} ${MONTHS[month-1] || ''} ${year}`;
+  }
+
+  recent.forEach(r => {
+    const emoji    = getEmoji(r);
+    const location = (r.location || r.caseId || 'Unknown location');
+    const locShort = location.length > 32 ? location.slice(0,30)+'…' : location;
+    const dateStr  = formatDate(r.date);
+    const caseId   = r.caseId || '';
+
+    const card = document.createElement('div');
+    card.className = 'rr-card';
+    card.onclick   = () => window.location.href = '/history.html?tab=history' + (caseId ? '&case=' + encodeURIComponent(caseId) : '');
+
+    card.innerHTML = `
+      ${r.thumbnail ? `<div class="rr-thumb"><img src="${r.thumbnail}" alt="photo" style="width:100%;height:100%;object-fit:cover;border-radius:13px;"/></div>` : `<div class="rr-thumb">${emoji}</div>`}
+      <div class="rr-body">
+        <div class="rr-top-row">
+          ${labelChip(r)}
+          ${statusChip(r)}
+        </div>
+        <div class="rr-location">${locShort}</div>
+        <div class="rr-meta">
+          <span>🗓 ${dateStr}</span>
+          ${caseId ? `<span class="rr-meta-sep">·</span><span>${caseId}</span>` : ''}
+        </div>
+      </div>
+      <svg class="rr-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a2f6e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    `;
+    list.appendChild(card);
+  });
+}
+// Call on initial page load (before server sync completes)
+renderRecentReportsFromStorage();
+</script>
+
+<!-- ═══ BOTTOM NAV ═══ -->
+<nav class="bottom-nav" id="bottomNav">
+  <button class="bnav-btn active" id="bnavHome">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
+      <path d="M9 21V12h6v9"/>
+    </svg>
+    <span>Home</span>
+  </button>
+
+  <button class="bnav-btn bnav-report" id="bnavReports" onclick="window.location.href='/history.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 11l3 3L22 4"/>
+      <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+    </svg>
+    <span>Reports</span>
+  </button>
+
+  <button class="bnav-btn" id="bnavProfile" onclick="goProfile()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="8" r="4"/>
+      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+    </svg>
+    <span>Profile</span>
+  </button>
+</nav>
+
+<!-- ═══ APP LOGIC ═══ -->
+<script src="/static/app.js"></script>
+<script>
+// ── Auth guard ──
+function getProfile() {
+  try { return JSON.parse(localStorage.getItem('tampines_profile') || 'null'); } catch(e){ return null; }
+}
+(function guardAuth() {
+  const p = getProfile();
+  if (!p || !p.phone || !p.homeAddress) {
+    window.location.replace('/login.html');
+  }
+})();
+
+// ── History bridge (called by app.js showSuccess) ──
+window.saveToHistory = function(data) {
+  const profile    = getProfile();
+  const phone      = profile ? profile.phone : 'guest';
+  const historyKey = 'tampines_history_' + phone;
+  const raw        = localStorage.getItem(historyKey);
+  const history    = raw ? JSON.parse(raw) : [];
+  history.push(data);
+  localStorage.setItem(historyKey, JSON.stringify(history));
+
+  // Immediately refresh UI from localStorage so user sees the new report right away
+  loadMonthlyStats();
+  renderRecentReportsFromStorage();
+
+  // Then re-sync from server after a short delay (server needs time to write DB)
+  setTimeout(() => syncFromServer(), 2500);
+};
+
+// ══════════════════════════════════════
+// SYNC FROM SERVER — single source of truth
+// Fetches /cases?phone=xxx, overwrites localStorage, then refreshes UI
+// ══════════════════════════════════════
+async function syncFromServer() {
+  const profile = getProfile();
+  const phone   = profile ? profile.phone : null;
+  if (!phone) return;
+
+  try {
+    const res  = await fetch('/cases');
+    if (!res.ok) return;
+    const data = await res.json();
+    const all  = (data.cases || []);
+
+    // Filter only this user's cases by phone
+    const mine = all.filter(c => (c.resident_phone || '') === phone);
+
+    // Preserve existing thumbnails from localStorage before overwriting
+    const historyKey = 'tampines_history_' + phone;
+    const existingRaw = localStorage.getItem(historyKey);
+    const existingList = existingRaw ? JSON.parse(existingRaw) : [];
+    const thumbMap = {};
+    existingList.forEach(e => { if (e.caseId && e.thumbnail) thumbMap[e.caseId] = e.thumbnail; });
+
+    // Build old-status lookup for change detection
+    const oldStatusMap = {};
+    existingList.forEach(e => { if (e.caseId) oldStatusMap[e.caseId] = (e.status || 'open').toLowerCase(); });
+
+    // Convert server format → localStorage format, restoring saved thumbnails
+    const converted = mine.map(c => ({
+      caseId:    c.case_id,
+      date:      serverDateToLocal(c.timestamp),
+      summary:   c.case_summary || 'Report submitted',
+      priority:  c.priority || 'LOW',
+      location:  c.location || '',
+      agencies:  c.agencies || '',
+      transcript:c.transcript || '',
+      status:    c.status || 'Open',
+      thumbnail: thumbMap[c.case_id] || null,
+    }));
+
+    // Overwrite localStorage with server truth (thumbnails preserved)
+    localStorage.setItem(historyKey, JSON.stringify(converted));
+
+    // ── Status-change notifications ──
+    converted.forEach(c => {
+      const newStatus = (c.status || 'open').toLowerCase().replace(/\s+/g, '');
+      const oldStatus = (oldStatusMap[c.caseId] || 'open').replace(/\s+/g, '');
+      if (newStatus === oldStatus) return;           // no change
+      if (!oldStatusMap[c.caseId]) return;           // brand-new case, skip
+
+      const shortId    = c.caseId || 'Unknown';
+      const locLabel   = c.location || shortId;
+      // Format agencies for display — pipe or comma separated
+      const agencyRaw  = (c.agencies || '').replace(/[\[\]'"]/g, '');
+      const agencyList = agencyRaw.split(/[|,]/).map(a => a.trim()).filter(Boolean);
+      const agencyLine = agencyList.length ? agencyList.join(' · ') : 'Town Council';
+
+      if (newStatus === 'inprogress' || newStatus === 'in-progress') {
+        addNotification({
+          icon:       '🔧',
+          title:      `Case ${shortId} is now In Progress`,
+          sub:        `📍 ${locLabel}\n🏢 Handled by: ${agencyLine}\n🕐 ${new Date().toLocaleString('en-SG')}`,
+          dedupeKey:  `${c.caseId}_inprogress`,
+        });
+      } else if (newStatus === 'resolved') {
+        addNotification({
+          icon:       '✅',
+          title:      `Case ${shortId} has been Resolved`,
+          sub:        `📍 ${locLabel}\n🏢 Resolved by: ${agencyLine}\n🕐 ${new Date().toLocaleString('en-SG')}`,
+          dedupeKey:  `${c.caseId}_resolved`,
+        });
+      } else if (newStatus === 'closed') {
+        addNotification({
+          icon:       '📁',
+          title:      `Case ${shortId} has been Closed`,
+          sub:        `📍 ${locLabel}\n🏢 Closed by: ${agencyLine}\n🕐 ${new Date().toLocaleString('en-SG')}`,
+          dedupeKey:  `${c.caseId}_closed`,
+        });
+      }
+    });
+
+  } catch(e) {
+    console.warn('[sync] Could not reach server, using localStorage cache:', e);
+  }
+
+  // Always refresh UI after sync attempt
+  loadMonthlyStats();
+  renderRecentReportsFromStorage();
+}
+
+function serverDateToLocal(ts) {
+  // Server stores "14/05/2026 10:32:05" or "14/05/2026, 10:32:05"
+  if (!ts) return '';
+  // Already in expected format
+  if (ts.includes('/')) return ts;
+  // ISO format fallback
+  try {
+    const d = new Date(ts);
+    return d.toLocaleString('en-SG');
+  } catch(e) { return ts; }
+}
+
+
+
+
+
+// Override sendReport AFTER app.js loads so video is saved to sessionStorage
+document.addEventListener('DOMContentLoaded', () => {
+  const _origSendReport = window.sendReport;
+  window.sendReport = async function() {
+    // If there's a selected video, serialize it alongside audio/images
+    if (typeof selectedVideo !== 'undefined' && selectedVideo) {
+      const sendBtn = document.getElementById('sendBtn');
+      if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = '⏳ Preparing…'; }
+      try {
+        const reader = new FileReader();
+        const videoB64 = await new Promise((res, rej) => {
+          reader.onload  = e => res(e.target.result); // keep full dataURI (includes mime type)
+          reader.onerror = rej;
+          reader.readAsDataURL(selectedVideo);
+        });
+        sessionStorage.setItem('tampines_pending_video', videoB64);
+        sessionStorage.setItem('tampines_pending_video_type', selectedVideo.type || 'video/webm');
+      } catch(e) {
+        sessionStorage.removeItem('tampines_pending_video');
+        sessionStorage.removeItem('tampines_pending_video_type');
+      }
+      if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = 'Review & Send →'; }
+    } else {
+      sessionStorage.removeItem('tampines_pending_video');
+      sessionStorage.removeItem('tampines_pending_video_type');
+    }
+    // Call original sendReport
+    _origSendReport && _origSendReport();
+  };
+});
+
+// ════════════════════════════════════════
+// VIDEO 60-SECOND LIMIT
+// ════════════════════════════════════════
+const VIDEO_MAX_SECONDS = 60;
+
+// ── Show video duration warning ──
+function showVideoLimitWarning(msg) {
+  let box = document.getElementById('videoLimitWarning');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'videoLimitWarning';
+    box.style.cssText = `
+      position:fixed; bottom:110px; left:50%; transform:translateX(-50%);
+      background:#1a1a1a; color:#fff;
+      padding:14px 22px; border-radius:16px;
+      font-family:'Nunito',sans-serif; font-size:14px; font-weight:800;
+      box-shadow:0 8px 32px rgba(0,0,0,0.35);
+      z-index:9999; text-align:center; max-width:320px; width:90%;
+      border-left:5px solid #dc2626;
+      animation:slideUpToast 0.3s ease;
+    `;
+    document.body.appendChild(box);
+    const st = document.createElement('style');
+    st.textContent = `@keyframes slideUpToast{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}`;
+    document.head.appendChild(st);
+  }
+  box.innerHTML = '🚫 ' + msg;
+  box.style.display = 'block';
+  clearTimeout(box._t);
+  box._t = setTimeout(() => { box.style.display = 'none'; }, 5000);
+}
+
+// ── Override startVideoRecord to enforce 60s cap ──
+document.addEventListener('DOMContentLoaded', () => {
+  const _origStart = window.startVideoRecord;
+  window.startVideoRecord = function() {
+    _origStart && _origStart();
+    // After original starts, watch for 60s limit
+    const limitInterval = setInterval(() => {
+      if (typeof videoRecSeconds === 'undefined') { clearInterval(limitInterval); return; }
+      if (videoRecSeconds >= VIDEO_MAX_SECONDS) {
+        clearInterval(limitInterval);
+        // Stop recording
+        if (typeof stopVideoRecord === 'function') stopVideoRecord();
+        showVideoLimitWarning('Maximum 1 minute reached. Recording stopped automatically.');
+        // Update timer colour to red
+        const t = document.getElementById('videoRecTimer');
+        if (t) t.style.color = '#dc2626';
+      }
+      // Warn at 50s
+      if (videoRecSeconds === 50) {
+        showVideoLimitWarning('⚠️ 10 seconds left! Max video length is 1 minute.');
+      }
+    }, 1000);
+  };
+
+  // ── Override handleUploadFile to check video duration ──
+  const _origUpload = window.handleUploadFile;
+  window.handleUploadFile = function(input) {
+    const files = Array.from(input.files || []);
+    const vid = files.find(f => f.type.startsWith('video/'));
+    if (vid) {
+      const tempURL = URL.createObjectURL(vid);
+      const tempVid = document.createElement('video');
+      tempVid.preload = 'metadata';
+      tempVid.src = tempURL;
+      tempVid.onloadedmetadata = function() {
+        URL.revokeObjectURL(tempURL);
+        if (tempVid.duration > VIDEO_MAX_SECONDS) {
+          showVideoLimitWarning(
+            `Video is ${Math.round(tempVid.duration)}s long. Max allowed is 1 minute (60s). Please trim or choose a shorter clip.`
+          );
+          input.value = '';
+          return;
+        }
+        // Duration OK — proceed with original handler
+        _origUpload && _origUpload(input);
+      };
+      tempVid.onerror = function() {
+        URL.revokeObjectURL(tempURL);
+        _origUpload && _origUpload(input);
+      };
+    } else {
+      // No video — just images, pass straight through
+      _origUpload && _origUpload(input);
+    }
+  };
+});
+
+// ── Clear voice recording ──
+window.clearVoiceRecording = function() {
+  // Stop any active recording
+  if (typeof isRecording !== 'undefined' && isRecording) {
+    if (typeof stopRecording === 'function') stopRecording();
+  } else if (typeof mediaRecorder !== 'undefined' && mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+    if (typeof recInterval !== 'undefined') clearInterval(recInterval);
+  }
+
+  // Clear the audio state used by app.js
+  if (typeof selectedAudio !== 'undefined') selectedAudio = null;
+  if (typeof audioChunks  !== 'undefined') audioChunks  = [];
+  if (typeof isRecording  !== 'undefined') isRecording  = false;
+
+  // Hide voice preview (class-based, matching app.js pattern)
+  const preview = document.getElementById('voicePreview');
+  if (preview) preview.classList.remove('show');
+
+  // Clear audio player
+  const player = document.getElementById('voicePlayer');
+  if (player) { player.pause(); player.src = ''; }
+
+  // Reset speak button to idle state (undo the 'done' class set by stopRecording)
+  const speakBtn = document.getElementById('speakBtn');
+  if (speakBtn) {
+    speakBtn.classList.remove('done', 'recording');
+  }
+
+  // Restore mic SVG icon
+  const speakRing = document.getElementById('speakRing');
+  if (speakRing) {
+    speakRing.innerHTML = '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1a2f6e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
+  }
+
+  // Restore labels
+  const speakTitle = document.getElementById('speakTitle');
+  const speakSub2  = document.getElementById('speakSub2');
+  if (speakTitle) speakTitle.textContent = 'Speak';
+  if (speakSub2)  speakSub2.textContent  = 'Describe the problem';
+
+  // Hide timer and waveform
+  const timer    = document.getElementById('speakTimer');
+  const waveform = document.getElementById('waveform');
+  if (timer)    timer.style.display = 'none';
+  if (waveform) waveform.classList.remove('show');
+};
+
+// ── Override showError: show inline above send button with shake ──
+window.showError = function(msg) {
+  const box = document.getElementById('errorBox');
+  if (!box) return;
+  box.textContent = '⚠️ ' + msg;
+  box.style.animation = 'none';
+  box.style.display = 'block';
+  void box.offsetWidth;
+  box.style.animation = 'errShake 0.3s ease';
+  box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  clearTimeout(box._hideTimer);
+  box._hideTimer = setTimeout(() => { box.style.display = 'none'; }, 6000);
+};
+
+function initBanner() {
+  const dismissed = localStorage.getItem('tampines_banner_dismissed');
+  if (dismissed) {
+  }
+}
+
+// ── PWA install prompt ──
+// NOTE: deferredPrompt is declared in app.js — do NOT redeclare here
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  // app.js handles this event already; banner shown via app.js
+});
+
+// ── Notification panel ──
+function toggleNotifPanel() {
+  const panel    = document.getElementById('notifPanel');
+  const backdrop = document.getElementById('notifBackdrop');
+  const isOpen   = panel.classList.contains('open');
+  panel.classList.toggle('open', !isOpen);
+  backdrop.classList.toggle('open', !isOpen);
+  if (!isOpen) {
+    // Sync immediately when bell is opened so notifications are always fresh
+    syncFromServer();
+    // Render persisted notifications and mark as read
+    renderNotifPanel();
+    markNotifsRead();
+    document.getElementById('headerBellDot').classList.remove('show');
+  }
+}
+
+// ── Persistent notification store ──
+const NOTIF_KEY = 'tampines_notifications';
+
+function loadNotifStore() {
+  try { return JSON.parse(localStorage.getItem(NOTIF_KEY) || '[]'); } catch(e) { return []; }
+}
+
+function saveNotifStore(items) {
+  // Keep max 30 notifications
+  localStorage.setItem(NOTIF_KEY, JSON.stringify(items.slice(0, 30)));
+}
+
+function renderNotifPanel() {
+  const body  = document.getElementById('notifPanelBody');
+  const items = loadNotifStore();
+  if (!items.length) {
+    body.innerHTML = `<div class="notif-empty">
+      <div class="notif-empty-icon">🔔</div>
+      <div class="notif-empty-text">No notifications yet</div>
+      <div class="notif-empty-sub">Updates on your reports will appear here</div>
+    </div>`;
+    return;
+  }
+  body.innerHTML = items.map(n => `
+    <div class="notif-item${n.unread ? ' unread' : ''}">
+      <div class="notif-item-icon">${n.icon}</div>
+      <div class="notif-item-body">
+        <div class="notif-item-title">${n.title}</div>
+        <div class="notif-item-sub" style="white-space:pre-line;line-height:1.6">${n.sub}</div>
+      </div>
+    </div>`).join('');
+}
+
+// Call this from app.js / showSuccess to add a notification
+window.addNotification = function({ icon = '📋', title = '', sub = '', dedupeKey = '' }) {
+  const store = loadNotifStore();
+
+  // Deduplicate — don't add the same notification twice
+  if (dedupeKey && store.some(n => n.dedupeKey === dedupeKey)) return;
+
+  store.unshift({ icon, title, sub, dedupeKey, unread: true, ts: Date.now() });
+  saveNotifStore(store);
+  renderNotifPanel();
+
+  // Show dot on bell
+  document.getElementById('headerBellDot').classList.add('show');
+};
+
+// Mark all as read when panel is opened
+function markNotifsRead() {
+  const store = loadNotifStore().map(n => ({ ...n, unread: false }));
+  saveNotifStore(store);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initBanner();
+  if (typeof loadProfile === 'function') loadProfile();
+  if (typeof startGPS    === 'function') startGPS();
+
+  // Restore bell dot if there are unread notifications from previous session
+  const hasUnread = loadNotifStore().some(n => n.unread);
+  if (hasUnread) document.getElementById('headerBellDot').classList.add('show');
+
+  const justReported = sessionStorage.getItem('tampines_new_report');
+  if (justReported) {
+    sessionStorage.removeItem('tampines_new_report');
+    syncFromServer();
+    setTimeout(() => syncFromServer(), 2000);
+  } else {
+    syncFromServer();
+  }
+
+  // Poll every 30 s so status-change notifications arrive while user is on home page
+  setInterval(() => syncFromServer(), 15000);
+});
+
+// ── MONTHLY STATS ──────────────────────────────────────────────────────────
+function loadMonthlyStats() {
+  const profile = getProfile();
+  const phone   = profile ? profile.phone : 'guest';
+
+  // Collect this user's history
+  const historyKey = 'tampines_history_' + phone;
+  let history = [];
+  try { history = JSON.parse(localStorage.getItem(historyKey) || '[]'); } catch(e) {}
+
+  const now       = new Date();
+  const thisMonth = now.getMonth();
+  const thisYear  = now.getFullYear();
+
+  // Label: "May 2026"
+  const monthName = now.toLocaleString('en-SG', { month: 'long', year: 'numeric' });
+  const labelEls  = document.querySelectorAll('#mstatMonthLabel');
+  labelEls.forEach(el => el.textContent = monthName);
+
+  // Filter reports submitted this calendar month
+  const thisMonthReports = history.filter(r => {
+    if (!r.date) return false;
+    // date stored as e.g. "14/05/2026, 10:32 AM"
+    const parts = r.date.split('/');
+    if (parts.length < 3) return false;
+    const month = parseInt(parts[1], 10) - 1; // 0-based
+    const year  = parseInt(parts[2].split(',')[0], 10);
+    return month === thisMonth && year === thisYear;
+  });
+
+  const totalThisMonth    = thisMonthReports.length;
+  const resolvedThisMonth = thisMonthReports.filter(r =>
+    (r.status || '').toLowerCase() === 'resolved'
+  ).length;
+
+  // Animate numbers
+  animateCount('mstatTotal',    totalThisMonth);
+  animateCount('mstatResolved', resolvedThisMonth);
+
+  // Progress bars (% of total this month)
+  setTimeout(() => {
+    const totalBar    = document.getElementById('mstatTotalBar');
+    const resolvedBar = document.getElementById('mstatResolvedBar');
+    if (totalThisMonth > 0) {
+      if (totalBar)    totalBar.style.width    = '100%';
+      if (resolvedBar) resolvedBar.style.width = Math.round((resolvedThisMonth / totalThisMonth) * 100) + '%';
+    } else {
+      if (totalBar)    totalBar.style.width    = '0%';
+      if (resolvedBar) resolvedBar.style.width = '0%';
+    }
+  }, 200);
+}
+
+function animateCount(id, target) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (target === 0) { el.textContent = '0'; return; }
+  let start = 0;
+  const step = Math.ceil(target / 20);
+  const timer = setInterval(() => {
+    start = Math.min(start + step, target);
+    el.textContent = start;
+    if (start >= target) clearInterval(timer);
+  }, 40);
+}
+</script>
+</body>
+</html>
+<!-- ═══ ISSUE MAP MODAL ═══ -->
+<div class="map-modal" id="issueMapModal">
+
+  <!-- Map container fills everything -->
+  <div id="issueMapContainer" style="position:absolute;inset:0;z-index:1;"></div>
+
+  <!-- Top bar -->
+  <div class="map-modal-topbar">
+    <button class="map-modal-close" onclick="closeIssueMap()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+    <div class="map-modal-title-wrap">
+      <div class="map-modal-title">Issue Map</div>
+      <div class="map-modal-sub" id="mapModalSub">Loading reports…</div>
+    </div>
+  </div>
+
+<!-- Filter chips -->
+<div class="map-filter-row" id="mapFilterRow">
+
+  <button class="map-filter-chip active"
+          onclick="filterMapMarkers('all',this)">
+    <span class="chip-dot all"></span>
+    All
+  </button>
+
+  <button class="map-filter-chip"
+          onclick="filterMapMarkers('critical',this)">
+    <span class="chip-dot critical"></span>
+    Critical
+  </button>
+
+  <button class="map-filter-chip"
+          onclick="filterMapMarkers('high',this)">
+    <span class="chip-dot high"></span>
+    High
+  </button>
+
+  <button class="map-filter-chip"
+          onclick="filterMapMarkers('medium',this)">
+    <span class="chip-dot medium"></span>
+    Medium
+  </button>
+
+  <button class="map-filter-chip"
+          onclick="filterMapMarkers('low',this)">
+    <span class="chip-dot low"></span>
+    Low
+  </button>
+
+</div>
+
+  <!-- Legend -->
+  <div class="map-legend">
+    <div class="map-legend-item"><div class="map-legend-dot" style="background:#dc2626;"></div>Critical</div>
+    <div class="map-legend-item"><div class="map-legend-dot" style="background:#ea580c;"></div>High</div>
+    <div class="map-legend-item"><div class="map-legend-dot" style="background:#d97706;"></div>Medium</div>
+    <div class="map-legend-item"><div class="map-legend-dot" style="background:#16a34a;"></div>Low</div>
+  </div>
+
+  <!-- No-reports empty state -->
+  <div class="map-no-reports" id="mapNoReports" style="display:none;">
+    <div class="map-no-reports-card">
+      <div class="map-no-reports-icon">🗺️</div>
+      <div class="map-no-reports-title">No issues mapped yet</div>
+      <div class="map-no-reports-sub">Reports with location data<br>will appear as pins on this map.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Leaflet CSS + JS (no API key needed) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<a class="chat-fab" href="/chat.html" title="Ask AI Assistant">
+   <img src="/static/ai-icon1.png" alt="AI Bot">
+</a>
+<script>
+// ═══ ISSUE MAP ═══
+let issueMap     = null;
+let mapMarkers   = [];   // { marker, prio }
+let allMapPins   = [];   // data array
+
+const PRIO_COLOR = { critical:'#dc2626', high:'#ea580c', medium:'#d97706', low:'#16a34a' };
+
+function makePinIcon(prio) {
+  const c = PRIO_COLOR[prio] || '#2d4db8';
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="34" height="44" viewBox="0 0 34 44">
+    <filter id="ds" x="-30%" y="-10%" width="160%" height="150%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="rgba(0,0,0,0.35)"/>
+    </filter>
+    <ellipse cx="17" cy="42" rx="6" ry="2.5" fill="rgba(0,0,0,0.18)"/>
+    <path d="M17 2C10.37 2 5 7.37 5 14c0 9.25 12 28 12 28S29 23.25 29 14C29 7.37 23.63 2 17 2z"
+          fill="${c}" filter="url(#ds)"/>
+    <circle cx="17" cy="14" r="6" fill="white" opacity="0.9"/>
+  </svg>`;
+  return L.divIcon({
+    html: svg,
+    iconSize: [34, 44],
+    iconAnchor: [17, 44],
+    popupAnchor: [0, -44],
+    className: ''
+  });
+}
+
+function getAllReports() {
+  // Only collect the current user's reports
+  const profile = getProfile();
+  const phone   = profile ? profile.phone : null;
+  if (!phone) return [];
+  const key = 'tampines_history_' + phone;
+  try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { return []; }
+}
+
+function geocodeAddress(address) {
+  // Use Nominatim (OpenStreetMap geocoder) — no key required
+  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address + ', Singapore')}&limit=1`;
+  return fetch(url, { headers: { 'Accept-Language': 'en' } })
+    .then(r => r.json())
+    .then(d => d && d[0] ? { lat: parseFloat(d[0].lat), lng: parseFloat(d[0].lon) } : null)
+    .catch(() => null);
+}
+
+function parseLatLng(loc) {
+  if (!loc) return null;
+  // "1.3521, 103.8198" format
+  const m = loc.match(/^(-?\d+\.?\d*),\s*(-?\d+\.?\d*)$/);
+  if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+  return null;
+}
+
+function prioFromReport(r) {
+  return ((r.priority || 'low')).toLowerCase();
+}
+
+function labelFromReport(r) {
+  if (r.summary) {
+    const s = r.summary.replace(/^Report submitted[: ]*/i, '').trim();
+    if (s) return s.length > 40 ? s.slice(0, 38) + '…' : s;
+  }
+  if (r.caseId) return r.caseId;
+  return 'Issue reported';
+}
+
+function popupHTML(r) {
+  const prio  = prioFromReport(r);
+  const c     = PRIO_COLOR[prio] || '#2d4db8';
+  const label = labelFromReport(r);
+  const loc   = r.location || '';
+  const date  = r.date ? r.date.split(',')[0] : '';
+  return `<div class="map-popup">
+    <div class="map-popup-prio" style="color:${c};">
+      <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${c};"></span>
+      ${prio.toUpperCase()}
+    </div>
+    <div class="map-popup-title">${label}</div>
+    ${loc ? `<div class="map-popup-loc">📍 ${loc}</div>` : ''}
+    ${date ? `<div class="map-popup-date">🗓 ${date}</div>` : ''}
+  </div>`;
+}
+
+function placeMarker(latlng, report) {
+  const prio   = prioFromReport(report);
+  const marker = L.marker([latlng.lat, latlng.lng], { icon: makePinIcon(prio) })
+    .bindPopup(popupHTML(report), { maxWidth: 240, minWidth: 180 });
+  marker.addTo(issueMap);
+  mapMarkers.push({ marker, prio });
+}
+
+function filterMapMarkers(f, btn) {
+  document.querySelectorAll('.map-filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  mapMarkers.forEach(({ marker, prio }) => {
+    if (f === 'all' || prio === f) marker.addTo(issueMap);
+    else issueMap.removeLayer(marker);
+  });
+}
+
+async function openIssueMap() {
+  const modal = document.getElementById('issueMapModal');
+  modal.classList.add('show');
+  document.body.style.overflow = 'hidden';
+
+  // Init map (centred on Tampines)
+  if (!issueMap) {
+    issueMap = L.map('issueMapContainer', {
+      center: [1.3540, 103.9437],
+      zoom: 15,
+      zoomControl: true,
+      attributionControl: true,
+    });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom: 19,
+    }).addTo(issueMap);
+  }
+
+  // Clear old markers
+  mapMarkers.forEach(({ marker }) => issueMap.removeLayer(marker));
+  mapMarkers = [];
+
+  const reports = getAllReports();
+  const subEl   = document.getElementById('mapModalSub');
+  const noEl    = document.getElementById('mapNoReports');
+
+  // Update banner badge
+  const badge = document.getElementById('mapReportCount');
+  if (reports.length > 0) {
+    badge.textContent = reports.length;
+    badge.classList.add('show');
+  }
+
+  if (!reports.length) {
+    noEl.style.display = 'flex';
+    subEl.textContent = 'No reports yet';
+    issueMap.invalidateSize();
+    return;
+  }
+  noEl.style.display = 'none';
+  subEl.textContent = `Placing ${reports.length} report${reports.length !== 1 ? 's' : ''}…`;
+
+  // Place reports — geocode addresses that aren't lat/lng already
+  let placed = 0;
+  const bounds = [];
+
+  for (const r of reports) {
+    const loc = r.location || '';
+    let latlng = parseLatLng(loc);
+
+    if (!latlng && loc) {
+      latlng = await geocodeAddress(loc);
+      await new Promise(res => setTimeout(res, 320)); // Nominatim rate limit
+    }
+
+    if (!latlng) {
+      // Scatter around Tampines centre as fallback
+      latlng = { lat: 1.3540 + (Math.random()-0.5)*0.012, lng: 103.9437 + (Math.random()-0.5)*0.012 };
+    }
+
+    placeMarker(latlng, r);
+    bounds.push([latlng.lat, latlng.lng]);
+    placed++;
+  }
+
+  subEl.textContent = `${placed} issue${placed !== 1 ? 's' : ''} on map`;
+
+  // Fit all pins
+  if (bounds.length === 1) {
+    issueMap.setView(bounds[0], 16);
+  } else if (bounds.length > 1) {
+    issueMap.fitBounds(bounds, { padding: [60, 60] });
+  }
+
+  issueMap.invalidateSize();
+}
+
+function closeIssueMap() {
+  document.getElementById('issueMapModal').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+// ── Update badge on page load ──
+document.addEventListener('DOMContentLoaded', () => {
+  const reports = getAllReports();
+  const badge   = document.getElementById('mapReportCount');
+  if (reports.length > 0) {
+    badge.textContent = reports.length;
+    badge.classList.add('show');
+    document.querySelector('.map-banner-sub').textContent =
+      `${reports.length} issue${reports.length !== 1 ? 's' : ''} reported near you`;
+  }
+});
+</script>
+
+<script>
+// ═══ AGENCY CAROUSEL ═══
+(function() {
+  const carousel = document.getElementById('agencyCarousel');
+  const dots     = document.querySelectorAll('.agency-dot');
+  const total    = 7;
+  let current    = 0;
+  let autoTimer;
+  let startX     = 0;
+  let moved      = false;
+
+  function goTo(idx) {
+    current = (idx + total) % total;
+    carousel.style.transform = `translateX(-${current * 100}%)`;
+    carousel.style.transition = 'transform 0.45s cubic-bezier(0.4,0,0.2,1)';
+    dots.forEach((d, i) => d.classList.toggle('active', i === current));
+  }
+
+  dots.forEach((d, i) => d.addEventListener('click', () => { goTo(i); resetAuto(); }));
+
+  function resetAuto() {
+    clearInterval(autoTimer);
+    autoTimer = setInterval(() => goTo(current + 1), 3000);
+  }
+
+  // Touch swipe — suppress link click if swiped
+  carousel.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX; moved = false;
+  }, {passive:true});
+  carousel.addEventListener('touchmove', () => { moved = true; }, {passive:true});
+  carousel.addEventListener('touchend', e => {
+    const diff = startX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) {
+      e.preventDefault();
+      goTo(current + (diff > 0 ? 1 : -1));
+      resetAuto();
+    }
+  });
+
+  carousel.addEventListener('mousedown', e => { startX = e.clientX; });
+  carousel.addEventListener('mouseup', e => {
+    const diff = startX - e.clientX;
+    if (Math.abs(diff) > 40) { goTo(current + (diff > 0 ? 1 : -1)); resetAuto(); }
+  });
+
+  resetAuto();
+})();
+</script>

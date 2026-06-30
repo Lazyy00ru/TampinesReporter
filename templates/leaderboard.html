@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Leaderboard — Tampines Estate Reporter</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#0d1b4b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="/static/icon-192.png">
+<link rel="stylesheet" href="/static/style.css">
+<style>
+:root {
+  --navy:#1a2f6e; --blue:#2d4db8; --gold:#f0a500;
+  --green:#16a34a; --red:#dc2626; --orange:#ea580c;
+  --bg:#eef1f8; --card:#ffffff; --text:#0f172a; --muted:#64748b;
+  --border:#e2e6f0;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);font-family:'Nunito',sans-serif;max-width:480px;margin:0 auto;min-height:100vh;}
+
+/* ── HEADER ── */
+header{
+  background:linear-gradient(100deg,#0d1b4b 0%,#1a2f6e 60%,#1e3a8a 100%);
+  padding:0 18px;height:64px;display:flex;align-items:center;gap:12px;
+  position:sticky;top:0;z-index:50;
+  box-shadow:0 4px 24px rgba(10,18,60,0.38);
+}
+.hdr-icon{font-size:26px;}
+.hdr-brand{flex:1;}
+.hdr-name{font-size:16px;font-weight:900;color:#fff;line-height:1.1;}
+.hdr-sub{font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+
+/* ── TAB SWITCHER ── */
+.tab-bar{
+  display:flex;gap:0;background:var(--card);
+  border-bottom:2px solid var(--border);position:sticky;top:64px;z-index:40;
+}
+.tab-btn{
+  flex:1;padding:14px 10px;border:none;background:none;cursor:pointer;
+  font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;color:var(--muted);
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  border-bottom:3px solid transparent;margin-bottom:-2px;transition:all 0.2s;
+}
+.tab-btn.active{color:var(--navy);border-bottom-color:var(--navy);}
+.tab-btn svg{width:16px;height:16px;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;fill:none;}
+
+/* ── PANELS ── */
+.panel{display:none;padding:16px 14px 110px;flex-direction:column;gap:0;}
+.panel.active{display:flex;}
+
+/* ── SECTION LABEL ── */
+.sec-label{
+  font-size:10px;font-weight:900;color:var(--muted);text-transform:uppercase;
+  letter-spacing:1.2px;margin:18px 0 10px 2px;
+}
+
+/* ── SCORING NOTE ── */
+.score-note{
+  background:linear-gradient(120deg,#fffbeb,#fff8f0);
+  border:1px solid #fde68a;border-radius:16px;
+  padding:14px 16px;margin-bottom:4px;
+  display:flex;gap:12px;align-items:flex-start;
+}
+.score-note-icon{font-size:22px;flex-shrink:0;margin-top:1px;}
+.score-note-title{font-size:12px;font-weight:900;color:#92400e;margin-bottom:5px;}
+.score-note-items{display:flex;flex-direction:column;gap:3px;}
+.score-note-item{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;color:#78350f;}
+.sni-pill{background:#fef3c7;border:1px solid #fde68a;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:900;color:#b45309;white-space:nowrap;}
+
+/* ── PODIUM ── */
+.podium{
+  display:flex;align-items:flex-end;justify-content:center;
+  gap:8px;padding:10px 4px 0;margin-bottom:4px;
+}
+.pod-slot{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;}
+.pod-avatar-wrap{position:relative;}
+.pod-avatar{
+  width:54px;height:54px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;font-weight:900;color:#fff;
+  border:3px solid transparent;position:relative;
+  box-shadow:0 4px 16px rgba(15,31,92,0.18);
+}
+.pod-avatar.p1{background:linear-gradient(135deg,#f0a500,#f97316);border-color:#fde68a;width:64px;height:64px;font-size:20px;}
+.pod-avatar.p2{background:linear-gradient(135deg,#64748b,#94a3b8);border-color:#cbd5e1;}
+.pod-avatar.p3{background:linear-gradient(135deg,#d97706,#f59e0b);border-color:#fde68a;}
+.pod-crown{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:18px;}
+.pod-rank{
+  position:absolute;bottom:-4px;right:-4px;
+  width:18px;height:18px;border-radius:50%;
+  font-size:9px;font-weight:900;color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid #fff;
+}
+.pod-rank.r1{background:#f0a500;}
+.pod-rank.r2{background:#64748b;}
+.pod-rank.r3{background:#d97706;}
+.pod-name{font-size:11px;font-weight:800;color:var(--text);text-align:center;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pod-score{font-size:12px;font-weight:900;color:var(--blue);}
+.pod-ped{
+  width:100%;text-align:center;border-radius:10px 10px 6px 6px;
+  font-size:9px;font-weight:900;letter-spacing:1px;padding:8px 4px 6px;
+}
+.pod-ped.p1{background:linear-gradient(180deg,#fef3c7,#fde68a);color:#92400e;min-height:64px;display:flex;align-items:flex-end;justify-content:center;}
+.pod-ped.p2{background:linear-gradient(180deg,#f1f5f9,#e2e8f0);color:#475569;min-height:46px;display:flex;align-items:flex-end;justify-content:center;}
+.pod-ped.p3{background:linear-gradient(180deg,#fffbeb,#fef3c7);color:#92400e;min-height:36px;display:flex;align-items:flex-end;justify-content:center;}
+.pod-ped span{padding-bottom:6px;}
+
+/* ── REPORTER ROWS ── */
+.lb-list{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
+.lb-row{
+  background:var(--card);border-radius:14px;border:1px solid var(--border);
+  padding:11px 14px;display:flex;align-items:center;gap:12px;
+  box-shadow:0 1px 6px rgba(15,31,92,0.06);
+}
+.lb-row.is-you{
+  background:linear-gradient(120deg,#eff6ff,#eef2ff);
+  border-color:#bfdbfe;box-shadow:0 2px 12px rgba(45,77,184,0.12);
+}
+.lb-row-rank{font-size:12px;font-weight:900;color:var(--muted);width:20px;text-align:center;flex-shrink:0;}
+.lb-row-avatar{
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,var(--navy),var(--blue));
+  color:#fff;font-size:13px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.lb-row-info{flex:1;min-width:0;}
+.lb-row-name{font-size:13px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lb-row-detail{font-size:10px;font-weight:700;color:var(--muted);margin-top:1px;}
+.lb-row-score{font-size:15px;font-weight:900;color:var(--navy);flex-shrink:0;}
+.lb-row-score-lbl{font-size:9px;font-weight:700;color:var(--muted);margin-left:2px;}
+
+/* ── EMPTY STATE ── */
+.lb-empty{text-align:center;padding:48px 20px 24px;}
+.lb-empty-icon{font-size:52px;margin-bottom:12px;}
+.lb-empty-title{font-size:17px;font-weight:900;color:var(--navy);margin-bottom:6px;}
+.lb-empty-sub{font-size:12px;color:var(--muted);font-weight:600;line-height:1.5;}
+
+/* ─────────────── AGENCY PANEL ─────────────── */
+
+/* Scoring breakdown card */
+.agency-score-card{
+  background:linear-gradient(120deg,#f0f4ff,#eef2ff);
+  border:1px solid #dbe4ff;border-radius:18px;
+  padding:16px;margin-bottom:6px;
+}
+.asc-title{font-size:12px;font-weight:900;color:var(--navy);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.asc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.asc-item{
+  background:#fff;border-radius:12px;border:1px solid #dbe4ff;
+  padding:10px 12px;display:flex;flex-direction:column;gap:3px;
+}
+.asc-item-icon{font-size:18px;}
+.asc-item-label{font-size:10px;font-weight:900;color:var(--navy);}
+.asc-item-desc{font-size:9px;font-weight:700;color:var(--muted);line-height:1.4;}
+.asc-item-weight{
+  font-size:10px;font-weight:900;color:#fff;
+  background:var(--blue);border-radius:20px;padding:2px 8px;
+  display:inline-block;margin-top:2px;align-self:flex-start;
+}
+
+/* Agency card */
+.ag-card{
+  background:var(--card);border-radius:18px;border:1px solid var(--border);
+  margin-bottom:12px;overflow:hidden;
+  box-shadow:0 2px 12px rgba(15,31,92,0.07);
+}
+.ag-card-header{
+  padding:14px 16px 10px;display:flex;align-items:center;gap:12px;
+}
+.ag-rank{
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:900;color:#fff;flex-shrink:0;
+}
+.ag-rank.r1{background:linear-gradient(135deg,#f0a500,#f97316);}
+.ag-rank.r2{background:linear-gradient(135deg,#64748b,#94a3b8);}
+.ag-rank.r3{background:linear-gradient(135deg,#d97706,#f59e0b);}
+.ag-rank.rN{background:linear-gradient(135deg,#2d4db8,#1a2f6e);}
+.ag-icon-box{
+  width:42px;height:42px;border-radius:12px;
+  background:#f0f4ff;border:1px solid #dbe4ff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;
+}
+.ag-info{flex:1;min-width:0;}
+.ag-name{font-size:13px;font-weight:900;color:var(--text);line-height:1.2;}
+.ag-cases{font-size:10px;font-weight:700;color:var(--muted);margin-top:2px;}
+.ag-total-score{
+  font-size:20px;font-weight:900;color:var(--navy);flex-shrink:0;line-height:1;
+}
+.ag-total-score span{font-size:9px;font-weight:700;color:var(--muted);display:block;text-align:center;}
+
+/* Score bars */
+.ag-bars{padding:0 16px 14px;display:flex;flex-direction:column;gap:7px;}
+.ag-bar-row{display:flex;align-items:center;gap:8px;}
+.ag-bar-label{font-size:10px;font-weight:800;color:var(--muted);width:76px;flex-shrink:0;}
+.ag-bar-track{flex:1;height:7px;background:#eef1f8;border-radius:20px;overflow:hidden;}
+.ag-bar-fill{height:100%;border-radius:20px;transition:width 0.8s cubic-bezier(0.34,1.56,0.64,1);}
+.ag-bar-val{font-size:10px;font-weight:900;color:var(--text);width:28px;text-align:right;flex-shrink:0;}
+
+/* Proof upload area (agency side) */
+.ag-proof-row{
+  padding:10px 16px 14px;border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.ag-proof-label{font-size:10px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;width:100%;margin-bottom:4px;}
+.ag-proof-thumb{
+  width:52px;height:52px;border-radius:10px;object-fit:cover;
+  border:1.5px solid var(--border);
+}
+.ag-proof-empty{
+  font-size:11px;font-weight:700;color:var(--muted);
+  background:#f8faff;border:1.5px dashed var(--border);
+  border-radius:10px;padding:8px 14px;
+}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:480px;background:rgba(255,255,255,0.96);
+  border-top:1px solid rgba(226,230,240,0.7);display:flex;z-index:90;
+  box-shadow:0 -8px 32px rgba(15,31,92,0.10);
+  padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+  align-items:center;justify-content:space-around;
+  backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);gap:6px;
+}
+.bnav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:4px;padding:9px 6px 7px;background:none;border:none;cursor:pointer;
+  color:#94a3b8;font-family:'Nunito',sans-serif;font-size:11px;font-weight:700;
+  transition:color 0.22s;border-radius:18px;position:relative;
+  -webkit-tap-highlight-color:transparent;
+}
+.bnav-btn svg{width:22px;height:22px;stroke:currentColor;stroke-width:2.2;
+  stroke-linecap:round;stroke-linejoin:round;fill:none;
+  transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);position:relative;z-index:1;}
+.bnav-btn span{position:relative;z-index:1;}
+.bnav-btn:not(.active):active{background:rgba(15,31,92,0.05);transform:scale(0.95);}
+.bnav-btn.active{color:#1a2f6e;}
+.bnav-btn.active::before{
+  content:'';position:absolute;inset:0;border-radius:18px;
+  background:linear-gradient(150deg,#eaeefc 0%,#dde4f7 100%);
+  border:1px solid rgba(45,77,184,0.14);z-index:0;
+}
+.bnav-btn.active svg{stroke:#1a2f6e;transform:scale(1.1) translateY(-1px);}
+.bnav-btn.active span{font-weight:900;color:#1a2f6e;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <button onclick="window.location.href='/profile.html#leaderboard'" style="background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.22);border-radius:12px;padding:7px 12px;color:#fff;font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;flex-shrink:0;-webkit-tap-highlight-color:transparent;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Back
+  </button>
+  <div class="hdr-brand">
+    <div class="hdr-name">Leaderboard</div>
+    <div class="hdr-sub">Tampines Estate Reporter</div>
+  </div>
+</header>
+
+<!-- TAB BAR -->
+<div class="tab-bar">
+  <button class="tab-btn active" id="tabUsers" onclick="switchTab('users')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    Residents
+  </button>
+  <button class="tab-btn" id="tabAgency" onclick="switchTab('agency')">
+    <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+    Agencies
+  </button>
+</div>
+
+<!-- ═══ RESIDENTS PANEL ═══ -->
+<div class="panel active" id="panelUsers">
+
+  <!-- Scoring note -->
+  <div class="score-note">
+    <div class="score-note-icon">⭐</div>
+    <div style="flex:1;">
+      <div class="score-note-title">How resident points are earned</div>
+      <div class="score-note-items">
+        <div class="score-note-item"><span class="sni-pill">+10</span> Each report submitted</div>
+        <div class="score-note-item"><span class="sni-pill">+5</span> Critical / High priority</div>
+        <div class="score-note-item"><span class="sni-pill">+3</span> Medium priority</div>
+        <div class="score-note-item"><span class="sni-pill">+2</span> Report with photo</div>
+        <div class="score-note-item"><span class="sni-pill">+1</span> Report with location</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-label">🥇 Top Reporters</div>
+  <div id="podiumWrap"></div>
+  <div id="reporterListWrap"></div>
+
+</div>
+
+<!-- ═══ AGENCY PANEL ═══ -->
+<div class="panel" id="panelAgency">
+
+  <!-- Weighted scoring explanation -->
+  <div class="agency-score-card">
+    <div class="asc-title">🎯 Agency Weighted Scoring System</div>
+    <div class="asc-grid">
+      <div class="asc-item">
+        <div class="asc-item-icon">📦</div>
+        <div class="asc-item-label">Completion Volume</div>
+        <div class="asc-item-desc">Total cases resolved vs assigned</div>
+        <div class="asc-item-weight">30%</div>
+      </div>
+      <div class="asc-item">
+        <div class="asc-item-icon">⏱️</div>
+        <div class="asc-item-label">Response Time</div>
+        <div class="asc-item-desc">Resolved within SLA window. Late = score reduced</div>
+        <div class="asc-item-weight">35%</div>
+      </div>
+      <div class="asc-item">
+        <div class="asc-item-icon">😊</div>
+        <div class="asc-item-label">User Satisfaction</div>
+        <div class="asc-item-desc">Resident feedback after resolution</div>
+        <div class="asc-item-weight">20%</div>
+      </div>
+      <div class="asc-item">
+        <div class="asc-item-icon">📸</div>
+        <div class="asc-item-label">Proof Quality</div>
+        <div class="asc-item-desc">Post-resolution photo uploaded, clear &amp; clean</div>
+        <div class="asc-item-weight">15%</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-label">🏢 Agency Performance Board</div>
+  <div id="agencyListWrap"></div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav" id="bottomNav"></nav>
+
+<script>
+// ── Tab switching ──
+function switchTab(tab) {
+  document.getElementById('panelUsers').classList.toggle('active', tab === 'users');
+  document.getElementById('panelAgency').classList.toggle('active', tab === 'agency');
+  document.getElementById('tabUsers').classList.toggle('active', tab === 'users');
+  document.getElementById('tabAgency').classList.toggle('active', tab === 'agency');
+}
+
+function getProfile() {
+  try { return JSON.parse(localStorage.getItem('tampines_profile') || 'null'); } catch(e){ return null; }
+}
+
+function initials(name) {
+  return (name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+}
+
+// ── Local reporters fallback ──
+function getLocalReporters() {
+  const profile = getProfile();
+  if (!profile?.phone) return [];
+  const key = 'tampines_history_' + profile.phone;
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem(key) || '[]'); } catch(e){}
+  if (!hist.length) return [];
+  let score = 0;
+  let critical = 0, high = 0, medium = 0, low = 0;
+  hist.forEach(r => {
+    const p = (r.priority||'LOW').toUpperCase();
+    score += 10;
+    if (p === 'CRITICAL' || p === 'HIGH') score += 5;
+    else if (p === 'MEDIUM') score += 3;
+    if (r.thumbnail) score += 2;
+    if (r.location) score += 1;
+    if (p === 'CRITICAL') critical++;
+    else if (p === 'HIGH') high++;
+    else if (p === 'MEDIUM') medium++;
+    else low++;
+  });
+  return [{ name: profile.name || 'You', phone: profile.phone, total: hist.length, score, critical, high, medium, low }];
+}
+
+// ── Default agency data ──
+const DEFAULT_AGENCIES = [
+  { name:'SCDF / HDB / Police',    icon:'🚒', cases:0, slaHrs:2,  completionRate:95, avgResponseHrs:2,  satisfaction:96, proofQuality:88 },
+  { name:'SP Group / Town Council', icon:'⚡', cases:0, slaHrs:4,  completionRate:88, avgResponseHrs:10, satisfaction:89, proofQuality:82 },
+  { name:'PUB / Town Council',      icon:'💧', cases:0, slaHrs:4,  completionRate:91, avgResponseHrs:7,  satisfaction:92, proofQuality:85 },
+  { name:'NEA / Town Council',      icon:'♻️', cases:0, slaHrs:24, completionRate:84, avgResponseHrs:20, satisfaction:85, proofQuality:78 },
+  { name:'LTA / HDB / URA',         icon:'🚗', cases:0, slaHrs:24, completionRate:82, avgResponseHrs:22, satisfaction:83, proofQuality:76 },
+  { name:'Town Council / HDB',      icon:'🏗️', cases:0, slaHrs:24, completionRate:80, avgResponseHrs:24, satisfaction:80, proofQuality:74 },
+  { name:'NParks / Town Council',   icon:'🌳', cases:0, slaHrs:72, completionRate:79, avgResponseHrs:30, satisfaction:78, proofQuality:72 },
+  { name:'NEA / Police / CMC',      icon:'🚔', cases:0, slaHrs:48, completionRate:76, avgResponseHrs:32, satisfaction:75, proofQuality:70 },
+  { name:'NEA / NParks / AVS',      icon:'🌿', cases:0, slaHrs:48, completionRate:74, avgResponseHrs:38, satisfaction:73, proofQuality:68 },
+];
+
+/**
+ * Weighted agency score (0–100):
+ *  35% Response Time  — ratio of slaHrs / avgResponseHrs, capped at 1; late = penalty
+ *  30% Completion     — completionRate (0–100)
+ *  20% Satisfaction   — satisfaction (0–100)
+ *  15% Proof Quality  — proofQuality (0–100)
+ */
+function calcAgencyScore(ag) {
+  const timeRatio    = Math.min(ag.slaHrs / Math.max(ag.avgResponseHrs, 0.1), 1);
+  const timeScore    = Math.round(timeRatio * 100);  // 0–100
+  const weighted     = (timeScore * 0.35) + (ag.completionRate * 0.30) + (ag.satisfaction * 0.20) + (ag.proofQuality * 0.15);
+  return Math.round(weighted);
+}
+
+// ── Render residents ──
+function renderReporters(reporters, myPhone) {
+  const podWrap  = document.getElementById('podiumWrap');
+  const listWrap = document.getElementById('reporterListWrap');
+
+  if (!reporters.length) {
+    podWrap.innerHTML  = '';
+    listWrap.innerHTML = `<div class="lb-empty"><div class="lb-empty-icon">🏅</div><div class="lb-empty-title">No reporters yet</div><div class="lb-empty-sub">Submit your first report to appear here!</div></div>`;
+    return;
+  }
+
+  // Podium: top 3, arrange as 2-1-3
+  const top3  = reporters.slice(0, 3);
+  const order = [top3[1], top3[0], top3[2]];
+  const slots = [
+    { cls:'p2', ped:'p2', rankCls:'r2', label:'2ND', crown:'' },
+    { cls:'p1', ped:'p1', rankCls:'r1', label:'1ST', crown:'👑' },
+    { cls:'p3', ped:'p3', rankCls:'r3', label:'3RD', crown:'' },
+  ];
+
+  let podHTML = `<div class="podium">`;
+  order.forEach((rep, i) => {
+    if (!rep) { podHTML += `<div class="pod-slot"></div>`; return; }
+    const rank  = reporters.indexOf(rep) + 1;
+    const isYou = rep.phone === myPhone;
+    const s     = slots[i];
+    podHTML += `
+      <div class="pod-slot">
+        <div class="pod-avatar-wrap">
+          ${s.crown ? `<div class="pod-crown">${s.crown}</div>` : ''}
+          <div class="pod-avatar ${s.cls}">
+            ${initials(rep.name)}
+            <div class="pod-rank ${s.rankCls}">${rank}</div>
+          </div>
+        </div>
+        <div class="pod-name">${isYou ? '⭐ You' : rep.name}</div>
+        <div class="pod-score">${rep.score} pts</div>
+        <div class="pod-ped ${s.ped}"><span>${s.label}</span></div>
+      </div>`;
+  });
+  podHTML += `</div>`;
+  podWrap.innerHTML = podHTML;
+
+  // Rows #4+
+  const rest = reporters.slice(3);
+  if (!rest.length) { listWrap.innerHTML = ''; return; }
+
+  let rowsHTML = `<div class="lb-list">`;
+  rest.forEach((rep, i) => {
+    const rank  = i + 4;
+    const isYou = rep.phone === myPhone;
+    rowsHTML += `
+      <div class="lb-row${isYou ? ' is-you' : ''}">
+        <div class="lb-row-rank">${rank}</div>
+        <div class="lb-row-avatar">${initials(rep.name)}</div>
+        <div class="lb-row-info">
+          <div class="lb-row-name">${isYou ? '⭐ You' : rep.name}</div>
+          <div class="lb-row-detail">${rep.total} report${rep.total!==1?'s':''} · ${rep.critical||0} critical</div>
+        </div>
+        <div class="lb-row-score">${rep.score}<span class="lb-row-score-lbl">pts</span></div>
+      </div>`;
+  });
+  rowsHTML += `</div>`;
+
+  // "You" sticky banner if outside top 3 and not already visible
+  const youIdx = reporters.findIndex(r => r.phone === myPhone);
+  if (youIdx >= 3) {
+    const you = reporters[youIdx];
+    rowsHTML += `
+      <div class="lb-row is-you" style="margin-top:4px;">
+        <div class="lb-row-rank">${youIdx+1}</div>
+        <div class="lb-row-avatar">${initials(you.name)}</div>
+        <div class="lb-row-info">
+          <div class="lb-row-name">⭐ You</div>
+          <div class="lb-row-detail">${you.total} report${you.total!==1?'s':''} · ${you.critical||0} critical</div>
+        </div>
+        <div class="lb-row-score">${you.score}<span class="lb-row-score-lbl">pts</span></div>
+      </div>`;
+  }
+
+  listWrap.innerHTML = rowsHTML;
+}
+
+// ── Render agencies ──
+function renderAgencies(agencies) {
+  const wrap = document.getElementById('agencyListWrap');
+
+  // Compute weighted scores and sort
+  const scored = agencies.map(ag => ({ ...ag, wscore: calcAgencyScore(ag) }));
+  scored.sort((a, b) => b.wscore - a.wscore);
+
+  const rankCls = ['r1','r2','r3'];
+
+  wrap.innerHTML = scored.map((ag, i) => {
+    const rc = rankCls[i] || 'rN';
+
+    // Individual dimension scores (0–100 each)
+    const timeRatio   = Math.min(ag.slaHrs / Math.max(ag.avgResponseHrs, 0.1), 1);
+    const timeScore   = Math.round(timeRatio * 100);
+    const timeLabel   = ag.avgResponseHrs <= ag.slaHrs
+      ? `Avg ${ag.avgResponseHrs}h (within SLA)`
+      : `Avg ${ag.avgResponseHrs}h (over SLA)`;
+    const timeColor   = timeScore >= 80 ? '#16a34a' : timeScore >= 55 ? '#d97706' : '#dc2626';
+    const compColor   = ag.completionRate >= 85 ? '#16a34a' : ag.completionRate >= 70 ? '#d97706' : '#dc2626';
+    const satColor    = ag.satisfaction >= 85 ? '#16a34a' : ag.satisfaction >= 70 ? '#d97706' : '#dc2626';
+    const proofColor  = ag.proofQuality >= 80 ? '#16a34a' : ag.proofQuality >= 60 ? '#d97706' : '#dc2626';
+
+    const cases   = ag.cases > 0 ? `${ag.cases} case${ag.cases!==1?'s':''}` : 'No cases yet';
+
+    // Proof quality display
+    const proofHTML = ag.proofImages && ag.proofImages.length
+      ? ag.proofImages.map(src => `<img class="ag-proof-thumb" src="${src}" alt="proof">`).join('')
+      : `<span class="ag-proof-empty">📷 No proof uploaded yet</span>`;
+
+    return `
+    <div class="ag-card">
+      <div class="ag-card-header">
+        <div class="ag-rank ${rc}">${i+1}</div>
+        <div class="ag-icon-box">${ag.icon}</div>
+        <div class="ag-info">
+          <div class="ag-name">${ag.name}</div>
+          <div class="ag-cases">${cases}</div>
+        </div>
+        <div class="ag-total-score">${ag.wscore}<span>/ 100</span></div>
+      </div>
+      <div class="ag-bars">
+        <div class="ag-bar-row">
+          <div class="ag-bar-label">⏱ Response</div>
+          <div class="ag-bar-track"><div class="ag-bar-fill" style="width:${timeScore}%;background:${timeColor};"></div></div>
+          <div class="ag-bar-val" style="color:${timeColor}">${timeScore}</div>
+        </div>
+        <div class="ag-bar-row">
+          <div class="ag-bar-label">📦 Completion</div>
+          <div class="ag-bar-track"><div class="ag-bar-fill" style="width:${ag.completionRate}%;background:${compColor};"></div></div>
+          <div class="ag-bar-val" style="color:${compColor}">${ag.completionRate}</div>
+        </div>
+        <div class="ag-bar-row">
+          <div class="ag-bar-label">😊 Satisfaction</div>
+          <div class="ag-bar-track"><div class="ag-bar-fill" style="width:${ag.satisfaction}%;background:${satColor};"></div></div>
+          <div class="ag-bar-val" style="color:${satColor}">${ag.satisfaction}</div>
+        </div>
+        <div class="ag-bar-row">
+          <div class="ag-bar-label">📸 Proof</div>
+          <div class="ag-bar-track"><div class="ag-bar-fill" style="width:${ag.proofQuality}%;background:${proofColor};"></div></div>
+          <div class="ag-bar-val" style="color:${proofColor}">${ag.proofQuality}</div>
+        </div>
+        <div style="font-size:10px;font-weight:700;color:var(--muted);margin-top:2px;">${timeLabel}</div>
+      </div>
+      <div class="ag-proof-row">
+        <div class="ag-proof-label">Completion Proof</div>
+        ${proofHTML}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Main load ──
+async function loadLeaderboard() {
+  const myPhone = getProfile()?.phone || '';
+  let reporters = [];
+  let agencies  = DEFAULT_AGENCIES;
+
+  document.getElementById('podiumWrap').innerHTML =
+    `<div style="text-align:center;padding:32px 0;color:#94a3b8;font-size:13px;font-weight:800;"><div style="font-size:32px;margin-bottom:8px;">⏳</div>Loading…</div>`;
+
+  try {
+    const res  = await fetch('/leaderboard');
+    const data = await res.json();
+    if (data.reporters && data.reporters.length > 0) {
+      reporters = data.reporters;
+      // Merge local user if not in DB yet
+      const inDB = reporters.some(r => r.phone === myPhone);
+      if (!inDB) {
+        const local = getLocalReporters();
+        if (local.length) { reporters.push(local[0]); reporters.sort((a,b) => b.score - a.score); }
+      }
+    } else {
+      reporters = getLocalReporters();
+    }
+    if (data.agencies && data.agencies.length) {
+      // Merge backend agency data with our scoring fields
+      agencies = DEFAULT_AGENCIES.map(def => {
+        const live = data.agencies.find(a => a.name === def.name);
+        return live ? { ...def, cases: live.cases || 0 } : def;
+      });
+    }
+  } catch(e) {
+    reporters = getLocalReporters();
+  }
+
+  renderReporters(reporters, myPhone);
+  renderAgencies(agencies);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  buildNav();
+  loadLeaderboard();
+});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/static/sw.js').catch(()=>{});
+
+// ── Dynamic nav: agency vs resident ──
+function buildNav() {
+  let isAgency = false;
+  try {
+    const s = JSON.parse(sessionStorage.getItem('agency_session') || 'null');
+    if (s && s.agency) isAgency = true;
+  } catch(e) {}
+
+  const homeHref    = isAgency ? '/agency_home.html'      : '/home.html';
+  const reportsHref = isAgency ? '/agency_dashboard.html' : '/history.html';
+  const profileHref = isAgency ? '/agency_profile.html'   : '/profile.html#leaderboard';
+  const profileLbl  = isAgency ? 'Profile'                : 'Profile';
+
+  document.getElementById('bottomNav').innerHTML = `
+    <button class="bnav-btn" onclick="window.location.href='${homeHref}'">
+      <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+      <span>Home</span>
+    </button>
+    <button class="bnav-btn" onclick="window.location.href='${reportsHref}'">
+      <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      <span>${isAgency ? 'Cases' : 'Reports'}</span>
+    </button>
+    <button class="bnav-btn active" onclick="window.location.href='${profileHref}'">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      <span>${profileLbl}</span>
+    </button>
+  `;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Tampines Estate Reporter</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#0a0f2e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="EstateReport">
+<link rel="apple-touch-icon" href="/static/icon-192.png">
+
+<style>
+/* ── Tokens ── */
+:root {
+  --ink:       #0a0f2e;
+  --ink-2:     #1b2556;
+  --accent:    #f59e0b;
+  --accent-2:  #fcd34d;
+  --ok:        #10b981;
+  --err:       #ef4444;
+  --surface:   rgba(255,255,255,0.06);
+  --border:    rgba(255,255,255,0.13);
+  --border-f:  rgba(245,158,11,0.7);
+  --text:      #f1f5ff;
+  --muted:     rgba(241,245,255,0.45);
+  --r:         16px;
+}
+
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100dvh;
+  background: var(--ink);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+/* ── Animated mesh background ── */
+.bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.bg-canvas::before {
+  content: '';
+  position: absolute;
+  top: -120px; left: -80px;
+  width: 420px; height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(45,77,184,0.45) 0%, transparent 70%);
+  animation: drift1 9s ease-in-out infinite alternate;
+}
+.bg-canvas::after {
+  content: '';
+  position: absolute;
+  bottom: -80px; right: -60px;
+  width: 360px; height: 360px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245,158,11,0.18) 0%, transparent 65%);
+  animation: drift2 11s ease-in-out infinite alternate;
+}
+.bg-spot {
+  position: absolute;
+  top: 42%; left: 60%;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%);
+  animation: drift3 14s ease-in-out infinite alternate;
+}
+@keyframes drift1 { 0%{transform:translate(0,0) scale(1)} 100%{transform:translate(30px,40px) scale(1.08)} }
+@keyframes drift2 { 0%{transform:translate(0,0) scale(1)} 100%{transform:translate(-24px,-30px) scale(1.05)} }
+@keyframes drift3 { 0%{transform:translate(0,0)} 100%{transform:translate(-20px,20px)} }
+
+/* Fine grid overlay */
+.bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* ── Page columns ── */
+.page-left,
+.page-right {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Mobile: stack vertically, single column feel */
+.page-left {
+  padding: 0 22px 0;
+}
+.page-right {
+  padding: 0 22px 40px;
+}
+
+/* Hide desktop-only trust bar on mobile */
+.trust-desktop-only { display: none; }
+.trust-mobile-only  { display: flex; }
+
+/* Desktop: side-by-side */
+@media (min-width: 900px) {
+  body {
+    flex-direction: row;
+    align-items: stretch;
+    min-height: 100vh;
+  }
+
+  .page-left {
+    flex: 1;
+    justify-content: center;
+    padding: 60px 64px 60px 8%;
+    min-height: 100vh;
+  }
+
+  .page-right {
+    width: 480px;
+    flex-shrink: 0;
+    justify-content: center;
+    padding: 60px 5% 60px 44px;
+    border-left: 1px solid rgba(255,255,255,0.07);
+    background: rgba(255,255,255,0.025);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    min-height: 100vh;
+  }
+
+  /* Bigger hero title on desktop */
+  .hero-title { font-size: 48px; }
+  .hero-desc  { max-width: 420px; font-size: 15px; }
+
+  /* Trust bars: swap visibility */
+  .trust-desktop-only { display: flex; margin-top: 48px; }
+  .trust-mobile-only  { display: none; }
+
+  /* Form card takes full width of right col */
+  .form-card { padding: 32px 28px 36px; }
+}
+
+/* ── Top brand bar ── */
+.brand-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 28px 0 0;
+}
+.brand-icon {
+  width: 46px; height: 46px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--accent) 0%, #f97316 100%);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 20px rgba(245,158,11,0.35);
+}
+.brand-icon svg { width: 26px; height: 26px; }
+.brand-text { display: flex; flex-direction: column; }
+.brand-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.3px;
+  line-height: 1;
+}
+.brand-sub {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+/* ── Hero copy ── */
+.hero {
+  margin-top: 36px;
+  margin-bottom: 36px;
+}
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(245,158,11,0.12);
+  border: 1px solid rgba(245,158,11,0.25);
+  border-radius: 40px;
+  padding: 5px 13px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-2);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+.hero-eyebrow .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--ok);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:.5;transform:scale(1)} 50%{opacity:1;transform:scale(1.35)} }
+
+.hero-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 34px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.12;
+  letter-spacing: -1px;
+  margin-bottom: 12px;
+}
+.hero-title em {
+  font-style: normal;
+  color: var(--accent);
+}
+.hero-desc {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--muted);
+  max-width: 320px;
+  font-weight: 400;
+}
+
+/* ── Form card ── */
+.form-card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 26px 22px 28px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Field group ── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.field-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.field-label-text {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: rgba(241,245,255,0.6);
+}
+.badge-required {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(245,158,11,0.12);
+  border: 1px solid rgba(245,158,11,0.22);
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+.badge-optional {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+/* Input wrapper — holds prefix + input */
+.input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: rgba(255,255,255,0.06);
+  border: 1.5px solid rgba(255,255,255,0.1);
+  border-radius: 14px;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  overflow: hidden;
+}
+.input-wrap:focus-within {
+  border-color: var(--border-f);
+  background: rgba(255,255,255,0.09);
+  box-shadow: 0 0 0 3px rgba(245,158,11,0.12);
+}
+.input-wrap.valid {
+  border-color: rgba(16,185,129,0.5);
+}
+.input-wrap.invalid {
+  border-color: rgba(239,68,68,0.55);
+  box-shadow: 0 0 0 3px rgba(239,68,68,0.08);
+}
+
+/* Input icon slot */
+.input-icon {
+  flex-shrink: 0;
+  padding: 0 0 0 15px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+}
+.input-icon svg { width: 17px; height: 17px; }
+
+/* Phone prefix */
+.phone-prefix {
+  flex-shrink: 0;
+  padding: 15px 10px 15px 15px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(241,245,255,0.7);
+  border-right: 1px solid rgba(255,255,255,0.1);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+input {
+  flex: 1;
+  width: 100%;
+  padding: 15px 15px;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1;
+}
+input::placeholder { color: rgba(241,245,255,0.22); font-weight: 400; }
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 100px rgba(10,15,46,0.9) inset;
+  -webkit-text-fill-color: var(--text);
+}
+
+/* Validation tick / cross */
+.input-check {
+  flex-shrink: 0;
+  padding-right: 13px;
+  display: none;
+}
+.input-check svg { width: 18px; height: 18px; }
+.input-wrap.valid .input-check   { display: flex; color: var(--ok); }
+.input-wrap.invalid .input-check { display: flex; color: var(--err); }
+
+/* Field hint */
+.field-hint {
+  font-size: 11.5px;
+  font-weight: 400;
+  color: var(--muted);
+  line-height: 1.5;
+  padding-left: 2px;
+}
+.field-hint.err { color: rgba(239,68,68,0.85); display: none; }
+.field-hint.err.show { display: block; }
+
+/* ── Divider ── */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  margin: 0;
+}
+
+/* ── CTA button ── */
+.cta-btn {
+  position: relative;
+  width: 100%;
+  padding: 17px 20px;
+  background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+  border: none;
+  border-radius: 16px;
+  font-family: 'Syne', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  color: #0a0f2e;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  box-shadow: 0 6px 28px rgba(245,158,11,0.38), 0 2px 8px rgba(0,0,0,0.2);
+  transition: transform 0.13s, box-shadow 0.2s, opacity 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  overflow: hidden;
+}
+.cta-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 60%);
+  border-radius: inherit;
+}
+.cta-btn:active {
+  transform: scale(0.97);
+  box-shadow: 0 3px 14px rgba(245,158,11,0.28);
+}
+.cta-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+.cta-btn svg { width: 20px; height: 20px; flex-shrink: 0; }
+.cta-arrow {
+  transition: transform 0.2s;
+}
+.cta-btn:not(:disabled):hover .cta-arrow { transform: translateX(3px); }
+
+/* Loading spinner inside button */
+.btn-spinner {
+  display: none;
+  width: 20px; height: 20px;
+  border: 2.5px solid rgba(10,15,46,0.25);
+  border-top-color: #0a0f2e;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.cta-btn.loading .btn-label  { display: none; }
+.cta-btn.loading .cta-arrow  { display: none; }
+.cta-btn.loading .btn-spinner { display: block; }
+
+/* ── Trust bar ── */
+.agency-portal-tag {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  margin-top: 20px; font-size: 12px; font-weight: 500;
+  color: rgba(241,245,255,0.35);
+}
+.agency-portal-tag a {
+  color: rgba(241,245,255,0.5); text-decoration: none;
+  border-bottom: 1px solid rgba(241,245,255,0.2);
+}
+.agency-portal-tag a:hover { color: var(--accent); }
+
+.trust-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 20px;
+}
+.trust-item {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.trust-item svg { width: 13px; height: 13px; opacity: .6; }
+.trust-sep { color: rgba(255,255,255,0.12); font-size: 10px; }
+
+/* ── Entry animation ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.brand-bar  { animation: fadeUp 0.5s ease both; }
+.hero       { animation: fadeUp 0.55s ease 0.08s both; }
+.form-card  { animation: fadeUp 0.55s ease 0.16s both; }
+.trust-bar  { animation: fadeUp 0.5s ease 0.24s both; }
+</style>
+</head>
+<body>
+
+<!-- Animated background -->
+<div class="bg-canvas">
+  <div class="bg-grid"></div>
+  <div class="bg-spot"></div>
+</div>
+
+<!-- Two-column layout: on mobile .page-left/.page-right stack; on desktop they sit side by side -->
+<div class="page-left">
+
+  <!-- Brand bar -->
+  <div class="brand-bar">
+    <div class="brand-icon">
+      <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M13 2L23 10v12a1 1 0 01-1 1H4a1 1 0 01-1-1V10L13 2z" fill="#0a0f2e" opacity=".25"/>
+        <path d="M13 2L23 10v12a1 1 0 01-1 1H4a1 1 0 01-1-1V10L13 2z" stroke="#0a0f2e" stroke-width="2" stroke-linejoin="round" fill="none"/>
+        <rect x="9" y="15" width="8" height="8" rx="1" fill="#0a0f2e"/>
+        <rect x="9.5" y="9.5" width="3" height="3" rx=".5" fill="#0a0f2e" opacity=".6"/>
+        <rect x="13.5" y="9.5" width="3" height="3" rx=".5" fill="#0a0f2e" opacity=".6"/>
+      </svg>
+    </div>
+    <div class="brand-text">
+      <div class="brand-name">Estate Reporter</div>
+      <div class="brand-sub">Tampines · Singapore</div>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-eyebrow">
+      <span class="dot"></span>
+      AI-Powered Reporting
+    </div>
+    <div class="hero-title">Report issues,<br><em>keep it safe.</em></div>
+    <div class="hero-desc">Snap a photo or record your voice — our AI routes your report to the right agency instantly.</div>
+  </div>
+
+  <!-- Trust bar (visible on desktop in left col; hidden on mobile) -->
+  <div class="trust-bar trust-desktop-only">
+    <div class="trust-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+      </svg>
+      Stored on-device
+    </div>
+    <span class="trust-sep">·</span>
+    <div class="trust-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      Never shared
+    </div>
+    <span class="trust-sep">·</span>
+    <div class="trust-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      Free to use
+    </div>
+  </div>
+
+</div><!-- /page-left -->
+
+<div class="page-right">
+
+  <!-- Form -->
+  <div class="form-card">
+
+    <!-- Name (optional) -->
+    <div class="field" id="field-name">
+      <div class="field-label">
+        <span class="field-label-text">Your Name</span>
+        <span class="badge-optional">Optional</span>
+      </div>
+      <div class="input-wrap" id="wrap-name">
+        <div class="input-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+          </svg>
+        </div>
+        <input type="text" id="inp-name" placeholder="e.g. Ahmad, Mei Ling…"
+               autocomplete="name" inputmode="text"
+               oninput="liveValidateName()"/>
+        <div class="input-check" id="chk-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Phone (required) -->
+    <div class="field" id="field-phone">
+      <div class="field-label">
+        <span class="field-label-text">WhatsApp Number</span>
+        <span class="badge-required">Required</span>
+      </div>
+      <div class="input-wrap" id="wrap-phone">
+        <div class="phone-prefix">🇸🇬 +65</div>
+        <input type="tel" id="inp-phone" placeholder="9123 4567"
+               maxlength="9" inputmode="numeric" autocomplete="tel"
+               oninput="liveValidatePhone()" onkeydown="if(event.key==='Enter')submitForm()"/>
+        <div class="input-check" id="chk-phone">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+      </div>
+      <div class="field-hint err" id="err-phone">Please enter a valid 8-digit Singapore number.</div>
+    </div>
+
+    <!-- Address (required) -->
+    <div class="field" id="field-addr">
+      <div class="field-label">
+        <span class="field-label-text">Home Block / Address</span>
+        <span class="badge-required">Required</span>
+      </div>
+      <div class="input-wrap" id="wrap-addr">
+        <div class="input-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+          </svg>
+        </div>
+        <input type="text" id="inp-addr" placeholder="Blk 456 Tampines St 42"
+               autocomplete="street-address"
+               oninput="liveValidateAddr()" onkeydown="if(event.key==='Enter')submitForm()"/>
+        <div class="input-check" id="chk-addr">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+      </div>
+      <div class="field-hint err" id="err-addr">Please enter your home block or address.</div>
+      <div class="field-hint">Used to locate your report accurately.</div>
+    </div>
+
+    <!-- CTA -->
+    <button class="cta-btn" id="ctaBtn" onclick="submitForm()">
+      <span class="btn-label">Get Started</span>
+      <div class="btn-spinner"></div>
+      <svg class="cta-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+      </svg>
+    </button>
+
+  </div>
+
+  <div class="agency-portal-tag">
+    🏢 Are you an agency?&nbsp;<a href="/agency_login.html">Go to agency login</a>
+  </div>
+
+  <!-- Trust bar (mobile only — on desktop it's in the left col) -->
+  <div class="trust-bar trust-mobile-only">
+    <div class="trust-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+      </svg>
+      Stored on-device
+    </div>
+    <span class="trust-sep">·</span>
+    <div class="trust-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      Never shared
+    </div>
+    <span class="trust-sep">·</span>
+    <div class="trust-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      Free to use
+    </div>
+  </div>
+
+</div><!-- /page-right -->
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/static/sw.js').catch(() => {});
+}
+
+/* ── Auth guard ── */
+function getProfile() {
+  try { return JSON.parse(localStorage.getItem('tampines_profile') || 'null'); } catch(e){ return null; }
+}
+(function() {
+  const p = getProfile();
+  if (p && p.phone && p.homeAddress) { window.location.replace('home.html'); }
+})();
+
+/* ── Live validation helpers ── */
+function setWrapState(id, state) {          // state: '' | 'valid' | 'invalid'
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.toggle('valid',   state === 'valid');
+  el.classList.toggle('invalid', state === 'invalid');
+}
+function showErr(id, show) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('show', show);
+}
+
+function liveValidateName() {
+  const v = document.getElementById('inp-name').value.trim();
+  setWrapState('wrap-name', v.length > 0 ? 'valid' : '');
+}
+
+function liveValidatePhone() {
+  const raw = document.getElementById('inp-phone').value.replace(/\s/g,'');
+  const ok  = /^\d{8}$/.test(raw);
+  setWrapState('wrap-phone', raw.length === 0 ? '' : ok ? 'valid' : 'invalid');
+  showErr('err-phone', raw.length > 0 && !ok);
+}
+
+function liveValidateAddr() {
+  const v = document.getElementById('inp-addr').value.trim();
+  setWrapState('wrap-addr', v.length >= 3 ? 'valid' : v.length > 0 ? 'invalid' : '');
+  showErr('err-addr', v.length > 0 && v.length < 3);
+}
+
+/* ── Submit ── */
+function submitForm() {
+  const name    = document.getElementById('inp-name').value.trim();
+  const phone   = document.getElementById('inp-phone').value.replace(/\s/g,'');
+  const address = document.getElementById('inp-addr').value.trim();
+
+  let valid = true;
+
+  // Phone: 8 digits, required
+  if (!/^\d{8}$/.test(phone)) {
+    setWrapState('wrap-phone', 'invalid');
+    showErr('err-phone', true);
+    valid = false;
+  } else {
+    setWrapState('wrap-phone', 'valid');
+    showErr('err-phone', false);
+  }
+
+  // Address: required, min 3 chars
+  if (address.length < 3) {
+    setWrapState('wrap-addr', 'invalid');
+    showErr('err-addr', true);
+    valid = false;
+  } else {
+    setWrapState('wrap-addr', 'valid');
+    showErr('err-addr', false);
+  }
+
+  if (!valid) {
+    // Shake form card
+    const card = document.querySelector('.form-card');
+    card.style.animation = 'none';
+    requestAnimationFrame(() => {
+      card.style.animation = 'shake 0.35s ease';
+    });
+    return;
+  }
+
+  // Animate button
+  const btn = document.getElementById('ctaBtn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  const profile = {
+    name:        name || null,
+    phone:       '+65' + phone,
+    homeAddress: address,
+  };
+  localStorage.setItem('tampines_profile', JSON.stringify(profile));
+
+  setTimeout(() => { window.location.replace('home.html'); }, 450);
+}
+
+/* Shake keyframe added via JS so it can re-trigger */
+const style = document.createElement('style');
+style.textContent = '@keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }';
+document.head.appendChild(style);
+</script>
+</body>
+</html>
