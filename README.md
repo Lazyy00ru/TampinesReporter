@@ -1,4 +1,4 @@
-# 🏘️ Tampines Estate Reporter
+# Tampines Estate Reporter
 
 > AI-powered estate issue reporting and municipal dispatch for Tampines, Singapore.
 
