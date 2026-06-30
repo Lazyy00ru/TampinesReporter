@@ -236,7 +236,7 @@ Additional agencies can be added to `AGENCY_PASSWORDS` in `main.py`.
 
 <br>
 
-**🎤 Project Presentation**
+** Project Presentation**
 
 ![Project Presentation](static/presentation.jpg)
 
