@@ -17,7 +17,7 @@ On the municipal side, officers get structured, pre-prioritised caseloads with f
 
 ---
 
-## 📱 Application Screenshots
+## Application Screenshots
 
 ### Resident Portal
 
@@ -210,7 +210,7 @@ Each of the 7 agencies has 2 named officers. When a new case comes in, `workforc
 1. Queries the database for each officer's current open-case count
 2. Derives a status: `free` / `on_case` / `at_capacity`
 3. Picks the best-fit officer (fewest open cases)
-4. Returns a capacity verdict (`✅ Sufficient` / `⚠️ Stretched` / `🔴 Understaffed`) and an estimated response time
+4. Returns a capacity verdict (`Sufficient` / `Stretched` / `Understaffed`) and an estimated response time
 
 ---
 
@@ -232,7 +232,7 @@ Additional agencies can be added to `AGENCY_PASSWORDS` in `main.py`.
 
 ---
 
-### 📸 Event Gallery
+### Event Gallery
 
 <br>
 
@@ -246,7 +246,7 @@ Additional agencies can be added to `AGENCY_PASSWORDS` in `main.py`.
 
 ---
 
-**🤝 Discussion with Minister**
+** Discussion with Minister**
 
 ![Discussion with Minister](/static/minister_discussion.jpeg)
 
@@ -256,7 +256,7 @@ Additional agencies can be added to `AGENCY_PASSWORDS` in `main.py`.
 
 ---
 
-**🧑‍🤝‍🧑 Team Photo with Judges & Mentors**
+** Team Photo with Judges & Mentors**
 
 ![Team Photo with Judges and Mentors](/static/team_photo.jpeg)
 
@@ -270,11 +270,11 @@ Additional agencies can be added to `AGENCY_PASSWORDS` in `main.py`.
 
 | Area | What We Demonstrated |
 |---|---|
-| 🧠 **Technical depth** | Multi-provider AI pipeline with Gemini, Groq Whisper, and structured Pydantic validation |
-| 🏛️ **Domain knowledge** | Accurate routing across 7 real Singapore agencies with 61 issue types and configurable SLAs |
-| 🚀 **Execution speed** | Full-stack system — backend, AI pipeline, agency portal, and notifications — built and live-demoed within the hackathon |
-| 🗣️ **Communication** | Presented a technical product to a mixed audience of government officials, engineers, and non-technical judges |
-| 🤝 **Teamwork** | Parallel development across AI, backend, and frontend under time pressure |
+| **Technical depth** | Multi-provider AI pipeline with Gemini, Groq Whisper, and structured Pydantic validation |
+| **Domain knowledge** | Accurate routing across 7 real Singapore agencies with 61 issue types and configurable SLAs |
+| **Execution speed** | Full-stack system — backend, AI pipeline, agency portal, and notifications — built and live-demoed within the hackathon |
+| **Communication** | Presented a technical product to a mixed audience of government officials, engineers, and non-technical judges |
+| **Teamwork** | Parallel development across AI, backend, and frontend under time pressure |
 
 ---
 
